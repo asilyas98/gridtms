@@ -1,0 +1,8 @@
+{
+  "name": "Final Grid TMS with team simple design",
+  "description": "A comprehensive trucking management system featuring load dispatch, customer CRM, and financial settlement modules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
