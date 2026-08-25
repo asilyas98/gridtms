@@ -1,0 +1,10 @@
+/health /.netlify/functions/health 200!
+/chat /.netlify/functions/chat 200!
+/auth/demo-login /.netlify/functions/auth-demo-login 200!
+/auth/login/start /.netlify/functions/auth-login-start 200!
+/auth/login/complete /.netlify/functions/auth-login-complete 200!
+/auth/register/start /.netlify/functions/auth-register-start 200!
+/auth/register/complete /.netlify/functions/auth-register-complete 200!
+/business/verify /.netlify/functions/business-verify 200!
+/api/* /.netlify/functions/api/:splat 200!
+/* /index.html 200
