@@ -1,0 +1,66 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/demo-login"
+  to = "/.netlify/functions/auth-demo-login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/start"
+  to = "/.netlify/functions/auth-login-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/complete"
+  to = "/.netlify/functions/auth-login-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/start"
+  to = "/.netlify/functions/auth-register-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/complete"
+  to = "/.netlify/functions/auth-register-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/business/verify"
+  to = "/.netlify/functions/business-verify"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
