@@ -1,0 +1,71 @@
+[build]
+  command = "npm run build"
+  publish = "frontend/dist"
+  functions = "frontend/netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # These values are intentionally public client configuration. Never add
+  # SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY, or other private keys here.
+  SECRETS_SCAN_OMIT_KEYS = "DEMO_USERNAME,DEMO_PASSWORD,OTP_TEST_CODE,AI_PROVIDER,OPENAI_MODEL,VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,SUPABASE_URL,SUPABASE_ANON_KEY"
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/demo-login"
+  to = "/.netlify/functions/auth-demo-login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/start"
+  to = "/.netlify/functions/auth-login-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/complete"
+  to = "/.netlify/functions/auth-login-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/start"
+  to = "/.netlify/functions/auth-register-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/complete"
+  to = "/.netlify/functions/auth-register-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/business/verify"
+  to = "/.netlify/functions/business-verify"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
