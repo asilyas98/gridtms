@@ -1,0 +1,375 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --navy: #1D1D1F;
+  --navy-dark: #1D1D1F;
+  --navy-light: #007AFF;
+  --orange-col: #007AFF; /* Remapped to Apple Royal Blue */
+  --teal-col: #34C759;   /* Remapped to Apple Grass Green */
+  --font-size-adjust: 0px;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-head: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+
+  --color-navy: var(--navy);
+  --color-navy-dark: var(--navy-dark);
+  --color-navy-light: var(--navy-light);
+  --color-orange: var(--orange-col);
+  --color-teal: var(--teal-col);
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-4xl: 32px;
+  --text-5xl: 44px;
+}
+
+@layer base {
+  body {
+    @apply bg-[#F5F5F7] text-slate-900 font-sans antialiased selection:bg-blue-500/20 selection:text-blue-600;
+  }
+}
+
+@layer components {
+  /* Apple-inspired Card: High roundedness, thin grid border, soft material shadow */
+  .tms-card {
+    @apply bg-white border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden;
+  }
+  .tms-table-header {
+    @apply bg-[#F5F5F7] border-b border-[#E5E5EA] px-4 py-3 text-left font-sans text-[11px] font-semibold uppercase tracking-wider text-slate-500;
+  }
+  .tms-table-cell {
+    @apply px-4 py-3 border-b border-[#F2F2F7] text-sm text-[13px];
+  }
+}
+
+/* Apple Native Light and Dark Theme overrides */
+.dark {
+  --navy: #2C2C2E !important;
+  --navy-dark: #1C1C1E !important;
+  --navy-light: #0A84FF !important; /* Apple True Dark Blue */
+  --orange-col: #0A84FF !important; /* Apple True Dark Blue */
+  --teal-col: #30D158 !important;   /* Apple True Dark Green */
+
+  background-color: #000000 !important;
+  color: #F5F5F7 !important;
+}
+
+.dark .text-navy,
+.dark .text-navy-dark {
+  color: #FFFFFF !important;
+}
+
+.dark body {
+  background-color: #000000 !important;
+  color: #F5F5F7 !important;
+}
+
+/* Translucent panels and structural background offsets */
+.dark .bg-white,
+.dark .tms-card,
+.dark [class*="bg-white"],
+.dark .bg-slate-50\/50,
+.dark .bg-slate-50\/30 {
+  background-color: #121214 !important;
+  border-color: #2C2C2E !important;
+}
+
+.dark .bg-slate-100,
+.dark .bg-slate-50,
+.dark [class*="bg-slate-50"],
+.dark [class*="bg-slate-100"] {
+  background-color: #1C1C1E !important;
+  border-color: #2C2C2E !important;
+}
+
+.dark .bg-slate-200,
+.dark .bg-slate-200\/50,
+.dark .bg-slate-100\/50 {
+  background-color: #2C2C2E !important;
+  border-color: #3A3A3C !important;
+}
+
+/* Ultra fine dark mode borders */
+.dark *,
+.dark .border,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-\[\#E5E5EA\],
+.dark .border-dotted {
+  border-color: #2C2C2E !important;
+}
+
+/* Crisp and legible typography with pure contrast */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark .font-bold {
+  color: #FFFFFF !important;
+}
+
+.dark .text-slate-900,
+.dark .text-slate-850,
+.dark .text-slate-800,
+.dark .text-slate-705,
+.dark .text-slate-700,
+.dark .text-slate-650,
+.dark .text-slate-600 {
+  color: #E5E5EA !important;
+}
+
+.dark .text-slate-500,
+.dark .text-slate-400 {
+  color: #8E8E93 !important; /* Apple secondary zinc grey */
+}
+
+.dark .text-slate-300 {
+  color: #D1D1D6 !important;
+}
+
+/* Universal Text Size Calibration with Custom Slider Boost */
+.text-\[8px\] {
+  font-size: calc(10px + var(--font-size-adjust)) !important;
+  letter-spacing: 0.05em !important;
+}
+
+.text-\[10px\] {
+  font-size: calc(11px + var(--font-size-adjust)) !important;
+  letter-spacing: 0.03em !important;
+}
+
+.text-xs {
+  font-size: calc(12px + var(--font-size-adjust)) !important;
+}
+
+.text-sm {
+  font-size: calc(13px + var(--font-size-adjust)) !important;
+}
+
+.text-base {
+  font-size: calc(15px + var(--font-size-adjust)) !important;
+}
+
+.text-lg {
+  font-size: calc(17px + var(--font-size-adjust)) !important;
+}
+
+.text-xl {
+  font-size: calc(19px + var(--font-size-adjust)) !important;
+}
+
+.text-2xl {
+  font-size: calc(22px + var(--font-size-adjust)) !important;
+}
+
+.text-3xl {
+  font-size: calc(26px + var(--font-size-adjust)) !important;
+}
+
+.text-4xl {
+  font-size: calc(32px + var(--font-size-adjust)) !important;
+}
+
+.text-5xl {
+  font-size: calc(40px + var(--font-size-adjust)) !important;
+}
+
+/* System Form elements style */
+.dark input, 
+.dark select, 
+.dark textarea {
+  background-color: #1C1C1E !important;
+  color: #FFFFFF !important;
+  border-color: #2C2C2E !important;
+}
+
+.dark input::placeholder {
+  color: #48484A !important;
+}
+
+.dark input:focus, 
+.dark select:focus {
+  border-color: #0A84FF !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px #0A84FF !important;
+}
+
+/* Button hover offsets */
+.dark button.bg-slate-100,
+.dark button.hover\:bg-slate-50:hover,
+.dark button.hover\:bg-slate-100:hover {
+  background-color: #2C2C2E !important;
+  color: #FFFFFF !important;
+}
+
+/* Translucent active state indicators */
+.dark .text-teal,
+.dark .text-teal-600 {
+  color: #30D158 !important;
+}
+
+.dark .bg-teal\/5,
+.dark .bg-teal\/10 {
+  background-color: rgba(48, 209, 88, 0.1) !important;
+  border-color: rgba(48, 209, 88, 0.2) !important;
+}
+
+.dark .text-orange,
+.dark .text-orange-600 {
+  color: #0A84FF !important;
+}
+
+.dark .bg-orange\/5,
+.dark .bg-orange\/10 {
+  background-color: rgba(10, 132, 255, 0.1) !important;
+  border-color: rgba(10, 132, 255, 0.2) !important;
+}
+
+.dark .text-emerald-800 {
+  color: #30D158 !important;
+}
+
+.dark .bg-emerald-50,
+.dark .bg-emerald-50\/80 {
+  background-color: rgba(48, 209, 88, 0.1) !important;
+  border-color: rgba(48, 209, 88, 0.2) !important;
+}
+
+.dark .text-rose-805,
+.dark .text-rose-800,
+.dark .text-rose-700,
+.dark .text-red-700,
+.dark .text-red-600,
+.dark .text-red-500,
+.dark .text-rose-600 {
+  color: #FF453A !important; /* Apple True Red */
+}
+
+.dark .bg-rose-50,
+.dark .bg-rose-100,
+.dark .bg-red-50,
+.dark .bg-red-100 {
+  background-color: rgba(255, 69, 58, 0.15) !important;
+  border-color: rgba(255, 69, 58, 0.2) !important;
+}
+
+.dark .text-blue-600,
+.dark .text-blue-500,
+.dark .text-blue-700 {
+  color: #409CFF !important; /* Apple True Light Blue */
+}
+
+.dark .text-purple-600,
+.dark .text-purple-500,
+.dark .text-purple-700 {
+  color: #BF5AF2 !important; /* Apple True Light Purple */
+}
+
+.dark .text-teal-700,
+.dark .text-teal-600,
+.dark .text-emerald-700,
+.dark .text-emerald-600 {
+  color: #30D158 !important; /* Apple True Light Green */
+}
+
+.dark .bg-blue-100,
+.dark .bg-blue-50 {
+  background-color: rgba(10, 132, 255, 0.15) !important;
+}
+
+.dark .bg-purple-100,
+.dark .bg-purple-50 {
+  background-color: rgba(191, 90, 242, 0.15) !important;
+}
+
+.dark .bg-teal-100,
+.dark .bg-teal-50,
+.dark .bg-emerald-100,
+.dark .bg-emerald-50 {
+  background-color: rgba(48, 209, 88, 0.15) !important;
+}
+
+.dark .bg-orange-100,
+.dark .bg-orange-50 {
+  background-color: rgba(10, 132, 255, 0.15) !important;
+}
+
+.dark .bg-green-100,
+.dark .bg-green-50 {
+  background-color: rgba(48, 209, 88, 0.15) !important;
+}
+
+/* Structural sidebar in Apple Dark Mode */
+.dark aside {
+  background-color: #000000 !important;
+  border-right: 1px solid #1C1C1E !important;
+}
+
+.dark header {
+  background-color: #000000 !important;
+  border-bottom: 1px solid #1C1C1E !important;
+}
+
+.dark footer {
+  background-color: #000000 !important;
+  border-top: 1px solid #1C1C1E !important;
+}
+
+.dark .tms-table-header {
+  background-color: #121214 !important;
+  color: #8E8E93 !important;
+  border-bottom: 1px solid #2C2C2E !important;
+}
+
+.dark .tms-table-cell {
+  border-bottom: 1px solid #2C2C2E !important;
+}
+
+.dark table tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Recharts overrides for perfect alignment on pitch black canvas */
+.dark .recharts-cartesian-grid line {
+  stroke: #1C1C1E !important;
+}
+
+.dark .recharts-text,
+.dark text.recharts-text,
+.dark .recharts-label {
+  fill: #AEAEB2 !important;
+}
+
+.dark .recharts-default-tooltip {
+  background-color: #1C1C1E !important;
+  border-color: #2C2C2E !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+}
+
+.dark .recharts-tooltip-item-name,
+.dark .recharts-tooltip-item-value,
+.dark .recharts-tooltip-label {
+  color: #FFFFFF !important;
+}
+
+.dark .recharts-tooltip-cursor {
+  fill: rgba(255, 255, 255, 0.02) !important;
+}
+
+
+/* AI chat inputs need explicit readable contrast because the chat panel is dark even when the global theme is light. */
+.ai-chat-input {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+
+.ai-chat-input::placeholder {
+  color: #71717a !important;
+}
