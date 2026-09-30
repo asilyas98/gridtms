@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="96" viewBox="0 0 360 96" role="img" aria-labelledby="title desc">
+  <title id="title">GridTMS logo</title>
+  <desc id="desc">A connected logistics grid and truck beside the GridTMS wordmark.</desc>
+  <g fill="none" fill-rule="evenodd">
+    <rect width="88" height="88" x="4" y="4" rx="24" fill="#0B1220"/>
+    <path stroke="#FF6B00" stroke-linecap="round" stroke-width="5" d="M23 26h42M23 43h24M23 60h16"/>
+    <circle cx="68" cy="26" r="6" fill="#FF6B00"/>
+    <circle cx="50" cy="43" r="6" fill="#FF6B00"/>
+    <circle cx="42" cy="60" r="6" fill="#FF6B00"/>
+    <path stroke="#FFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M25 69h38V48h10l9 10v11h-5m-47 0h-5m38 0h4"/>
+    <circle cx="37" cy="70" r="6" fill="#0B1220" stroke="#FFF" stroke-width="4"/>
+    <circle cx="70" cy="70" r="6" fill="#0B1220" stroke="#FFF" stroke-width="4"/>
+    <text x="110" y="68" fill="#0B1220" font-family="Inter, Arial, sans-serif" font-size="51" font-weight="800" letter-spacing="-2">Grid<tspan fill="#FF6B00">TMS</tspan></text>
+  </g>
+</svg>
+

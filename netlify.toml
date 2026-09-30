@@ -1,0 +1,85 @@
+[build]
+  command = "npm run build"
+  publish = "frontend/dist"
+  functions = "frontend/netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+  # These values are intentionally public client configuration. Never add
+  # SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY, or other private keys here.
+  # Ignore only public configuration and low-entropy feature flags. Private
+  # credentials remain protected by Netlify's secret scanner.
+  SECRETS_SCAN_OMIT_KEYS = "AI_CHATBOT_ENABLED,AI_PROVIDER,APP_ENV,AWS_REGION,BEDROCK_LLM_MODEL,BUSINESS_VERIFICATION_MODE,CORS_ORIGINS,DEMO_BUSINESS_ID,DEMO_LOGIN_ENABLED,DEMO_USERNAME,DEMO_PASSWORD,DEMO_TOKEN,DOT_PROVIDER_API_URL,NETLIFY_NEXT_PLUGIN_SKIP,NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,NODE_VERSION,OPENAI_MODEL,OTP_EXPIRATION_MINUTES,OTP_EXPIRY_MINUTES,OTP_MODE,OTP_TEST_CODE,SUPABASE_URL,SUPABASE_ANON_KEY,USE_AWS,VITE_API_BASE_URL,VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
+  SECRETS_SCAN_OMIT_PATHS = "node_modules/**,frontend/node_modules/**,.aistudio/**,frontend/dist/**"
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/demo-login"
+  to = "/.netlify/functions/auth-demo-login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/start"
+  to = "/.netlify/functions/auth-login-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login/complete"
+  to = "/.netlify/functions/auth-login-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/refresh"
+  to = "/.netlify/functions/auth-refresh"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/start"
+  to = "/.netlify/functions/auth-register-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/register/complete"
+  to = "/.netlify/functions/auth-register-complete"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/business/verify"
+  to = "/.netlify/functions/business-verify"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/storage/upload"
+  to = "/.netlify/functions/storage-upload"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
