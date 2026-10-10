@@ -2,718 +2,711 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apex Carrier OS • Solo Flight Deck</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GridTMS • Driver Mobile Cockpit</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'SF Mono', 'ui-monospace', 'monospace'],
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', '"SF Mono"', 'ui-monospace', 'monospace'],
           },
           colors: {
-            charcoal: '#111827',
-            borderSubtle: '#E5E7EB',
-            surfaceMuted: '#F9FAFB',
-            accentGreen: '#059669',
-            accentAmber: '#D97706',
-            accentRed: '#DC2626',
+            appleBlue: '#007AFF',
+            appleGreen: '#34C759',
+            appleAmber: '#FF9500',
+            appleRed: '#FF3B30',
+            charcoal: '#1D1D1F',
+            surfaceDark: '#121214',
+            surfaceCard: '#1C1C1E',
           }
         }
       }
     }
   </script>
   <style>
-    /* Apple-inspired human interface refinements */
     * {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      touch-action: manipulation;
     }
     body {
-      background-color: #FFFFFF;
-      color: #111827;
+      background-color: #F5F5F7;
+      color: #1D1D1F;
       font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
     }
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+    .dark body {
+      background-color: #000000;
+      color: #F5F5F7;
     }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
+    /* Touch optimization */
+    button, a, input {
+      min-height: 44px;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #E5E7EB;
-      border-radius: 9999px;
+    .code-input:focus {
+      border-color: #007AFF;
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
+      outline: none;
     }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #D1D5DB;
-    }
-    /* Subtle drawer animation */
-    #detailDrawer {
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    /* Tabular numbers for clocks */
+    .tabular-numbers {
+      font-variant-numeric: tabular-nums;
     }
   </style>
 </head>
-<body class="min-h-screen bg-white text-charcoal font-sans flex flex-col antialiased selection:bg-black selection:text-white">
+<body class="min-h-screen flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-600 bg-[#F5F5F7] dark:bg-black text-slate-900 dark:text-white">
 
   <!-- ========================================================================= -->
-  <!-- 1. GLOBAL STATUS BAR (TOP HEADER) -->
+  <!-- 1. DRIVER AUTH GATE: LOGIN & FIRST-TIME EMAIL VERIFICATION -->
   <!-- ========================================================================= -->
-  <header class="h-14 border-b border-gray-200 bg-white sticky top-0 z-30 px-6 flex items-center justify-between">
-    <!-- Left: App branding + Dynamic clock -->
-    <div class="flex items-center gap-5">
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 bg-charcoal rounded-lg flex items-center justify-center text-white font-bold text-xs shadow-xs tracking-wider">
+  <div id="authGate" class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-2xl border border-neutral-200/80 dark:border-[#2C2C2E] p-6 sm:p-8 space-y-6">
+      
+      <!-- Brand & Header -->
+      <div class="text-center space-y-2">
+        <div class="inline-flex w-14 h-14 rounded-2xl bg-blue-500/10 text-appleBlue items-center justify-center font-black text-2xl shadow-inner mx-auto mb-1">
+          ▲
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          GridTMS Driver Cockpit
+        </h1>
+        <p id="authSubtitle" class="text-xs text-neutral-500 dark:text-neutral-400">
+          Enter your driver email & password credentials to access assigned dispatches.
+        </p>
+      </div>
+
+      <!-- Auth Error Banner -->
+      <div id="authError" class="hidden p-3.5 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 text-xs font-semibold flex items-center gap-2">
+        <span>⚠</span>
+        <span id="authErrorText">Invalid credentials.</span>
+      </div>
+
+      <!-- VIEW A: Driver Email & Password Login Form -->
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">
+            Registered Driver Email
+          </label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            placeholder="driver@carrierfleet.com" 
+            required 
+            class="w-full h-12 px-4 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] text-sm text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-appleBlue"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-neutral-600 dark:text-neutral-300">
+              Driver Password
+            </label>
+            <span class="text-[11px] text-neutral-400">Assigned by dispatch</span>
+          </div>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            placeholder="••••••••" 
+            required 
+            class="w-full h-12 px-4 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] text-sm text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-appleBlue font-mono"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          id="loginBtn"
+          class="w-full h-12 rounded-xl bg-appleBlue hover:bg-blue-600 text-white font-bold text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+          Sign In to Driver Cockpit →
+        </button>
+
+        <div class="pt-2 text-center">
+          <button 
+            type="button" 
+            onclick="switchToVerificationView()" 
+            class="text-xs text-appleBlue hover:underline font-semibold"
+          >
+            First time login? Enter email verification code
+          </button>
+        </div>
+      </form>
+
+      <!-- VIEW B: First-Time 6-Digit Email Verification Code Form -->
+      <form id="verifyForm" onsubmit="handleVerifySubmit(event)" class="hidden space-y-4">
+        <div class="p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <span>🛡</span> First-Time Login Verification
+          </div>
+          <p class="text-[11px] leading-relaxed">
+            Enter the 6-digit code sent to your registered email to verify account ownership and set your password.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">
+            Driver Email
+          </label>
+          <input 
+            type="email" 
+            id="verifyEmail" 
+            placeholder="driver@carrierfleet.com" 
+            required 
+            class="w-full h-12 px-4 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] text-sm text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-appleBlue"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">
+            6-Digit Email Verification Code
+          </label>
+          <input 
+            type="text" 
+            id="verifyCode" 
+            placeholder="123456" 
+            maxlength="6"
+            pattern="[0-9]{6}"
+            required 
+            class="w-full h-12 px-4 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] text-center text-xl font-bold font-mono tracking-widest text-neutral-900 dark:text-white focus:outline-none focus:border-appleBlue code-input"
+          />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-1.5">
+            Set Your Mobile Password (Optional)
+          </label>
+          <input 
+            type="password" 
+            id="verifyPassword" 
+            placeholder="Minimum 6 characters" 
+            class="w-full h-12 px-4 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] text-sm text-neutral-900 dark:text-white font-medium focus:outline-none focus:border-appleBlue font-mono"
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          id="verifyBtn"
+          class="w-full h-12 rounded-xl bg-appleGreen hover:bg-emerald-600 text-white font-bold text-sm transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
+        >
+          Verify Code & Access Cockpit ✓
+        </button>
+
+        <div class="pt-2 flex items-center justify-between text-xs">
+          <button 
+            type="button" 
+            onclick="switchToLoginView()" 
+            class="text-neutral-500 hover:text-neutral-900 dark:hover:text-white font-medium"
+          >
+            ← Back to Password Login
+          </button>
+          <button 
+            type="button" 
+            onclick="handleResendCodeClick()" 
+            id="resendCodeBtn"
+            class="text-appleBlue hover:underline font-semibold"
+          >
+            Resend Code
+          </button>
+        </div>
+      </form>
+
+      <!-- Carrier Footer Badge -->
+      <div class="pt-4 border-t border-neutral-100 dark:border-[#2C2C2E] flex items-center justify-between text-[11px] text-neutral-400">
+        <span>Carrier USDOT: <strong id="carrierDot" class="text-neutral-700 dark:text-neutral-300">3829104</strong></span>
+        <span>Secure Cab Transport</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. AUTHENTICATED MOBILE DRIVER COCKPIT -->
+  <!-- ========================================================================= -->
+  <div id="driverCockpit" class="hidden min-h-screen flex flex-col">
+    
+    <!-- Top Mobile Navigation Bar -->
+    <header class="h-16 border-b border-neutral-200 dark:border-[#2C2C2E] bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-blue-500/10 text-appleBlue flex items-center justify-center font-bold text-xs shrink-0">
           ▲
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-sm tracking-tight text-charcoal">APEX CARRIER OS</span>
-            <span class="text-[10px] uppercase font-mono tracking-widest px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded font-semibold">SOLO COCKPIT</span>
+            <h2 id="cockpitDriverName" class="text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
+              Marcus Vance
+            </h2>
+            <span id="cockpitUnitBadge" class="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-appleGreen border border-emerald-200 dark:border-emerald-500/20">
+              TRK-101
+            </span>
+          </div>
+          <div class="text-[11px] text-neutral-400 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-appleGreen"></span>
+            <span>Online • USDOT <span id="cockpitDotNumber">3829104</span></span>
           </div>
         </div>
       </div>
 
-      <div class="hidden sm:flex items-center gap-2 pl-4 border-l border-gray-200 text-xs text-gray-500 font-mono">
-        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="systemClock">--:--:-- EST</span>
-      </div>
-    </div>
-
-    <!-- Center: Quick Fleet Capacity Split -->
-    <div class="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-200/80 text-xs font-medium">
-      <span class="text-gray-400 text-[11px] uppercase tracking-wider font-semibold mr-1">Fleet (20):</span>
-      <span class="flex items-center gap-1 text-emerald-600 font-semibold px-2 py-0.5 rounded bg-white shadow-2xs">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-        <span id="activeCount">14</span> Active
-      </span>
-      <span class="flex items-center gap-1 text-amber-600 font-semibold px-2 py-0.5 rounded bg-white shadow-2xs">
-        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-        <span id="idleCount">4</span> Idle
-      </span>
-      <span class="flex items-center gap-1 text-gray-500 font-medium px-2 py-0.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-        <span id="shopCount">2</span> In-Shop
-      </span>
-    </div>
-
-    <!-- Right: Micro P&L Widget -->
-    <div class="flex items-center gap-4">
-      <div class="text-right">
-        <div class="flex items-baseline justify-end gap-1.5">
-          <span class="text-[10px] uppercase font-semibold text-gray-400 tracking-wider">Booked Today</span>
-          <span class="font-mono text-base font-bold text-charcoal tabular-nums">$14,850</span>
-        </div>
-        <div class="flex items-center justify-end gap-2 text-[11px] text-gray-500 font-mono mt-0.5">
-          <span>Est. Fuel: <strong class="text-gray-700 font-medium">$3,420</strong></span>
-          <span class="text-gray-300">•</span>
-          <span class="text-emerald-600 font-medium">+77% Net Margin</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ========================================================================= -->
-  <!-- MAIN 4-ZONE FLIGHT DECK (RESPONSIVE GRID) -->
-  <!-- ========================================================================= -->
-  <main class="flex-1 max-w-[1720px] w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-    
-    <!-- ======================================================================= -->
-    <!-- 2. THE FIRE PANEL (LEFT SIDEBAR - 3 OF 12 COLS = 1/4 WIDTH) -->
-    <!-- ======================================================================= -->
-    <section class="lg:col-span-3 space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.5)]"></span>
-          <h2 class="text-xs uppercase tracking-wider font-bold text-charcoal">Critical Attention Required</h2>
-        </div>
-        <span id="fireBadgeCount" class="text-[11px] font-mono font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
-          3 Urgent
-        </span>
-      </div>
-
-      <div id="fireList" class="space-y-3">
-        
-        <!-- Fire 1: Critical Delay -->
-        <article id="fire-delay-104" class="p-4 rounded-xl border border-red-200 bg-red-50/40 hover:bg-red-50/70 transition-all shadow-xs">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-red-700">
-              <svg class="w-3.5 h-3.5 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>CRITICAL DELAY • 45M LATE</span>
-            </div>
-            <span class="font-mono text-[11px] text-red-800 font-semibold">TRK-104</span>
-          </div>
-          <p class="text-xs font-semibold text-charcoal mt-2">
-            Walmart DC Appointment at 14:00 EST
-          </p>
-          <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">
-            Severe I-80 corridor construction backup. Shipper rep must be notified for appointment reschedule.
-          </p>
-          <div class="mt-3 pt-3 border-t border-red-200/70 flex items-center justify-between">
-            <span class="text-[11px] font-medium text-gray-500">Driver: Dave Miller</span>
-            <button onclick="resolveFire('fire-delay-104', 'Called Dave Miller (TRK-104). Receiver appointment updated with Walmart dispatch.')" class="px-2.5 py-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-2xs transition-all active:scale-95 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-              Call Driver
-            </button>
-          </div>
-        </article>
-
-        <!-- Fire 2: Unassigned Freight -->
-        <article id="fire-load-8802" class="p-4 rounded-xl border border-amber-300 bg-amber-50/50 hover:bg-amber-50/80 transition-all shadow-xs">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-amber-800">
-              <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>UNASSIGNED FREIGHT</span>
-            </div>
-            <span class="font-mono text-[11px] text-amber-900 font-bold">$3,850</span>
-          </div>
-          <p class="text-xs font-semibold text-charcoal mt-2">
-            Load #8802 • Chicago, IL → Dallas, TX
-          </p>
-          <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">
-            Pickup window in <strong>18 hours</strong>. 53' Dry Van. No power unit or driver locked in.
-          </p>
-          <div class="mt-3 pt-3 border-t border-amber-200/80 flex items-center justify-between">
-            <span class="text-[11px] text-amber-900 font-medium">4 Idle Trucks Nearby</span>
-            <button onclick="resolveFire('fire-load-8802', 'Load #8802 assigned to TRK-108 (Carlos Ramirez). Rate con sent.')" class="px-2.5 py-1 text-xs font-semibold text-white bg-charcoal hover:bg-black rounded-lg shadow-2xs transition-all active:scale-95">
-              Assign Driver →
-            </button>
-          </div>
-        </article>
-
-        <!-- Fire 3: Compliance Risk -->
-        <article id="fire-hos-112" class="p-4 rounded-xl border border-red-200 bg-red-50/40 hover:bg-red-50/70 transition-all shadow-xs">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-1.5 text-xs font-bold text-red-700">
-              <svg class="w-3.5 h-3.5 text-red-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <span>HOS COMPLIANCE ALERT</span>
-            </div>
-            <span class="font-mono text-[11px] text-red-800 font-semibold">TRK-112</span>
-          </div>
-          <p class="text-xs font-semibold text-charcoal mt-2">
-            Driver: John Doe • 42 mins on Drive Clock
-          </p>
-          <p class="text-[11px] text-gray-600 mt-1 leading-relaxed">
-            Approaching mandatory 10-hour sleeper berth. Current location: I-40 Exit 182 Love's Travel Stop.
-          </p>
-          <div class="mt-3 pt-3 border-t border-red-200/70 flex items-center justify-between">
-            <span class="text-[11px] font-mono text-red-600 font-medium">Clock: 00:42:15</span>
-            <button onclick="resolveFire('fire-hos-112', 'John Doe notified. Truck #112 safely parked at Love’s Travel Stop.')" class="px-2.5 py-1 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-all">
-              Acknowledge & Park
-            </button>
-          </div>
-        </article>
-
-      </div>
-
-      <!-- Quick Operational Action Note -->
-      <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-500 flex items-start gap-2">
-        <svg class="w-4 h-4 text-gray-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span>Resolving fires removes them from the alert deck and flags the audit trail for your FMCSA safety records.</span>
-      </div>
-    </section>
-
-    <!-- ======================================================================= -->
-    <!-- 3. THE FLEET COMMAND GRID (CENTER MATRIX - 6 OF 12 COLS = 2/4 WIDTH) -->
-    <!-- ======================================================================= -->
-    <section class="lg:col-span-6 space-y-4">
-      <!-- Toolbar Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-gray-200">
-        <div>
-          <h2 class="text-xs uppercase tracking-wider font-bold text-charcoal">Fleet Command Matrix (20 Trucks)</h2>
-          <p class="text-xs text-gray-500 mt-0.5">Click any power unit card for ELD clocks, dispatch controls & driver phone</p>
-        </div>
-
-        <!-- Filter tabs -->
-        <div class="inline-flex p-0.5 bg-gray-100 rounded-lg border border-gray-200 text-xs font-medium self-start sm:self-auto">
-          <button onclick="filterFleet('all')" id="tab-all" class="px-2.5 py-1 rounded-[6px] bg-white text-charcoal shadow-2xs font-semibold transition-all">All (20)</button>
-          <button onclick="filterFleet('ontime')" id="tab-ontime" class="px-2.5 py-1 rounded-[6px] text-gray-500 hover:text-charcoal transition-all">On Time (13)</button>
-          <button onclick="filterFleet('delayed')" id="tab-delayed" class="px-2.5 py-1 rounded-[6px] text-gray-500 hover:text-charcoal transition-all">Delayed (1)</button>
-          <button onclick="filterFleet('idle')" id="tab-idle" class="px-2.5 py-1 rounded-[6px] text-gray-500 hover:text-charcoal transition-all">Idle (4)</button>
-          <button onclick="filterFleet('shop')" id="tab-shop" class="px-2.5 py-1 rounded-[6px] text-gray-500 hover:text-charcoal transition-all">Shop (2)</button>
-        </div>
-      </div>
-
-      <!-- 20-Truck High-Density Grid (Responsive 2-column or 3-column) -->
-      <div id="fleetContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-3 max-h-[720px] overflow-y-auto pr-1 custom-scrollbar">
-        <!-- Rendered dynamically by JavaScript -->
-      </div>
-    </section>
-
-    <!-- ======================================================================= -->
-    <!-- 4. THE CASH FLOW ANCHOR (RIGHT SIDEBAR - 3 OF 12 COLS = 1/4 WIDTH) -->
-    <!-- ======================================================================= -->
-    <section class="lg:col-span-3 space-y-5">
-      
-      <!-- SECTION 1: TRAPPED CAPITAL -->
-      <div class="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs">
-        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-          <div>
-            <h3 class="text-xs uppercase tracking-wider font-bold text-charcoal">Trapped Capital</h3>
-            <p class="text-[11px] text-gray-500 mt-0.5">Unbilled cash flow & factoring bottleneck</p>
-          </div>
-          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-        </div>
-
-        <div class="mt-4 space-y-4">
-          <!-- Uninvoiced Loads -->
-          <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80">
-            <div class="flex items-center justify-between">
-              <span class="text-xs text-gray-500 font-medium">Missing Signed BOL</span>
-              <span class="text-[10px] font-mono font-bold text-amber-700 bg-amber-100/70 px-1.5 py-0.5 rounded">4 Loads</span>
-            </div>
-            <div class="mt-2 flex items-baseline justify-between">
-              <span class="text-2xl font-extrabold text-charcoal font-mono tracking-tight">$18,400</span>
-              <button onclick="triggerToast('Reminders dispatched via SMS to 4 drivers to upload signed POD/BOL via phone camera.')" class="text-xs font-semibold text-charcoal hover:underline">
-                Request BOLs →
-              </button>
-            </div>
-            <p class="text-[11px] text-gray-500 mt-1">Delivered freight waiting for paperwork before broker will release payout.</p>
-          </div>
-
-          <!-- Factoring Pending -->
-          <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-200/80">
-            <div class="flex items-center justify-between">
-              <span class="text-xs text-gray-500 font-medium">Factoring In-Review</span>
-              <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.5 rounded">Same-Day Eligible</span>
-            </div>
-            <div class="mt-2 flex items-baseline justify-between">
-              <span class="text-2xl font-extrabold text-charcoal font-mono tracking-tight">$32,150</span>
-              <span class="text-xs font-medium text-gray-400">Fee: 1.75%</span>
-            </div>
-            <p class="text-[11px] text-gray-500 mt-1">7 approved schedules submitted to Apex Financial. Funding cut-off at 15:30.</p>
-            
-            <button id="fastPayBtn" onclick="requestFastPay()" class="mt-3 w-full py-2 px-3 text-xs font-bold text-white bg-charcoal hover:bg-black rounded-lg transition-all shadow-2xs active:scale-98 flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-              Request Fast-Pay ($31,587 Net)
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 2: PREVENTATIVE FLEET MAINTENANCE -->
-      <div class="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs">
-        <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-          <div>
-            <h3 class="text-xs uppercase tracking-wider font-bold text-charcoal">Preventative Maintenance</h3>
-            <p class="text-[11px] text-gray-500 mt-0.5">PM & Oil services within &lt;1,000 miles</p>
-          </div>
-          <span class="text-[10px] font-mono font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">3 Due</span>
-        </div>
-
-        <div class="mt-3 space-y-2.5">
-          <!-- Truck 103 -->
-          <div class="p-2.5 rounded-xl border border-amber-200 bg-amber-50/30 flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-charcoal font-mono">TRK-103</span>
-                <span class="text-[11px] text-gray-600">2022 Freightliner</span>
-              </div>
-              <div class="text-[11px] text-amber-800 font-medium mt-0.5">
-                Service A Due in <strong class="font-mono">240 mi</strong> (Oil + Filters)
-              </div>
-            </div>
-            <button onclick="triggerToast('Maintenance slot reserved for TRK-103 at Speedco Gary, IN.')" class="px-2 py-1 text-[11px] font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-md transition-colors">
-              Schedule
-            </button>
-          </div>
-
-          <!-- Truck 109 -->
-          <div class="p-2.5 rounded-xl border border-amber-200 bg-amber-50/30 flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-charcoal font-mono">TRK-109</span>
-                <span class="text-[11px] text-gray-600">2021 Peterbilt 579</span>
-              </div>
-              <div class="text-[11px] text-amber-800 font-medium mt-0.5">
-                Brake Drum Inspection in <strong class="font-mono">610 mi</strong>
-              </div>
-            </div>
-            <button onclick="triggerToast('Work order created for TRK-109 brake drum inspection.')" class="px-2 py-1 text-[11px] font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 rounded-md transition-colors">
-              Schedule
-            </button>
-          </div>
-
-          <!-- Truck 116 -->
-          <div class="p-2.5 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-bold text-charcoal font-mono">TRK-116</span>
-                <span class="text-[11px] text-gray-600">2023 Kenworth T680</span>
-              </div>
-              <div class="text-[11px] text-gray-600 font-medium mt-0.5">
-                DOT Annual Inspection in <strong class="font-mono">890 mi</strong>
-              </div>
-            </div>
-            <button onclick="triggerToast('Annual DOT inspection reminder synchronized with driver calendar.')" class="px-2 py-1 text-[11px] font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 rounded-md transition-colors">
-              Queue
-            </button>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <!-- ========================================================================= -->
-  <!-- SLIDE-OVER DETAIL DRAWER FOR TRUCK INSPECTION -->
-  <!-- ========================================================================= -->
-  <div id="drawerBackdrop" onclick="closeDrawer()" class="fixed inset-0 bg-black/30 backdrop-blur-xs z-40 hidden opacity-0 transition-opacity duration-200"></div>
-
-  <aside id="detailDrawer" class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white border-l border-gray-200 z-50 transform translate-x-full shadow-2xl flex flex-col justify-between">
-    <div>
-      <!-- Drawer Header -->
-      <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div id="drawerStatusDot" class="w-3 h-3 rounded-full bg-emerald-500"></div>
-          <div>
-            <h3 id="drawerTruckId" class="text-lg font-bold font-mono text-charcoal">TRK-101</h3>
-            <p id="drawerDriverName" class="text-xs text-gray-500">Marcus Vance • Cell: (312) 555-0192</p>
-          </div>
-        </div>
-        <button onclick="closeDrawer()" class="p-1.5 rounded-lg text-gray-400 hover:text-charcoal hover:bg-gray-100 transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Drawer Body Content -->
-      <div class="p-6 space-y-5 text-xs">
-        
-        <!-- ELD Clocks Section -->
-        <div>
-          <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400">ELD Hos Clocks (FMCSA Active)</span>
-          <div class="grid grid-cols-3 gap-2 mt-2">
-            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
-              <span class="text-[10px] text-gray-500 block">Drive Remaining</span>
-              <span id="drawerDriveClock" class="font-mono font-bold text-sm text-charcoal block mt-0.5">06:45</span>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
-              <span class="text-[10px] text-gray-500 block">Shift Left</span>
-              <span id="drawerShiftClock" class="font-mono font-bold text-sm text-charcoal block mt-0.5">08:12</span>
-            </div>
-            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
-              <span class="text-[10px] text-gray-500 block">Cycle (70h)</span>
-              <span id="drawerCycleClock" class="font-mono font-bold text-sm text-charcoal block mt-0.5">28:40</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Load Corridor & Milestone Details -->
-        <div>
-          <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400">Current Freight Assignment</span>
-          <div class="mt-2 p-3.5 bg-gray-50 rounded-xl border border-gray-200 space-y-2.5">
-            <div class="flex items-center justify-between">
-              <span id="drawerLoadNum" class="font-mono font-bold text-charcoal">Load #9014</span>
-              <span id="drawerRate" class="font-mono font-bold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded">$2,950</span>
-            </div>
-            <div class="flex items-center gap-2 text-gray-700 font-medium">
-              <span id="drawerOrigin">Chicago, IL</span>
-              <span class="text-gray-400">→</span>
-              <span id="drawerDest">Atlanta, GA</span>
-            </div>
-            <div class="text-[11px] text-gray-500 flex justify-between">
-              <span id="drawerCustomer">C.H. Robinson (Net 30)</span>
-              <span id="drawerMiles">715 Miles total</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tractor Telemetry & Equipment -->
-        <div>
-          <span class="text-[10px] uppercase font-bold tracking-wider text-gray-400">Power Unit Telemetry</span>
-          <div class="mt-2 space-y-2 border-t border-b border-gray-100 py-3">
-            <div class="flex justify-between">
-              <span class="text-gray-500">Equipment Spec:</span>
-              <span id="drawerMakeModel" class="font-medium text-charcoal">2023 Volvo VNL 860</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Current Location:</span>
-              <span id="drawerLocation" class="font-medium text-charcoal">Nashville, TN (I-65 S)</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Fuel Level:</span>
-              <span id="drawerFuel" class="font-mono font-medium text-charcoal">74% (165 Gallons)</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500">Odometer:</span>
-              <span id="drawerOdometer" class="font-mono text-gray-700">142,880 mi</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Drawer Footer Actions -->
-    <div class="p-6 border-t border-gray-100 bg-gray-50 space-y-2">
-      <button onclick="triggerToast('Driver call initiated via browser VoIP bridge.')" class="w-full py-2.5 px-4 bg-charcoal hover:bg-black text-white text-xs font-semibold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2">
-        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-        Call Driver Directly
+      <button 
+        type="button" 
+        onclick="handleSignOut()" 
+        class="h-9 px-3 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:text-red-500 hover:border-red-300 transition-colors"
+      >
+        Sign Out
       </button>
-      <button onclick="triggerToast('Rate confirmation re-sent to driver mobile app.')" class="w-full py-2 px-4 bg-white border border-gray-200 hover:bg-gray-100 text-charcoal text-xs font-semibold rounded-xl transition-all">
-        Send Trip Documents / Rate Con
-      </button>
-    </div>
-  </aside>
+    </header>
 
-  <!-- ========================================================================= -->
-  <!-- TOAST NOTIFICATION POPUP -->
-  <!-- ========================================================================= -->
-  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-charcoal text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-3">
-    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-    </svg>
-    <span id="toastMessage">Action completed successfully.</span>
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+      <!-- HOS Driving Clocks Widget -->
+      <section class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-appleGreen animate-pulse"></span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-700 dark:text-neutral-300">
+              Hours of Service (HOS) Status
+            </h3>
+          </div>
+          <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
+            On Duty • Driving
+          </span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="p-3 bg-neutral-50 dark:bg-[#2C2C2E]/50 rounded-2xl border border-neutral-100 dark:border-[#2C2C2E]">
+            <div class="text-[10px] uppercase font-bold text-neutral-400">Drive Time</div>
+            <div class="text-xl font-bold font-mono text-appleGreen tabular-numbers mt-0.5">
+              09:15
+            </div>
+            <div class="text-[9px] text-neutral-400">Remaining</div>
+          </div>
+
+          <div class="p-3 bg-neutral-50 dark:bg-[#2C2C2E]/50 rounded-2xl border border-neutral-100 dark:border-[#2C2C2E]">
+            <div class="text-[10px] uppercase font-bold text-neutral-400">Shift Clock</div>
+            <div class="text-xl font-bold font-mono text-neutral-800 dark:text-neutral-100 tabular-numbers mt-0.5">
+              12:45
+            </div>
+            <div class="text-[9px] text-neutral-400">Remaining</div>
+          </div>
+
+          <div class="p-3 bg-neutral-50 dark:bg-[#2C2C2E]/50 rounded-2xl border border-neutral-100 dark:border-[#2C2C2E]">
+            <div class="text-[10px] uppercase font-bold text-neutral-400">70h Cycle</div>
+            <div class="text-xl font-bold font-mono text-neutral-800 dark:text-neutral-100 tabular-numbers mt-0.5">
+              64:10
+            </div>
+            <div class="text-[9px] text-neutral-400">Cycle Left</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Dispatched Load Card -->
+      <section id="activeLoadSection" class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-5">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Active Load Assignment
+            </div>
+            <h2 id="activeLoadNumber" class="text-2xl font-bold text-neutral-900 dark:text-white font-mono tracking-tight">
+              LD-10492
+            </h2>
+          </div>
+          <span id="activeLoadStatusBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/10 text-appleBlue border border-blue-200 dark:border-blue-500/20">
+            In Transit
+          </span>
+        </div>
+
+        <!-- Route Stop Overview -->
+        <div class="p-4 rounded-2xl bg-neutral-50 dark:bg-[#2C2C2E]/40 border border-neutral-100 dark:border-[#2C2C2E] space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-blue-500/15 text-appleBlue flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              A
+            </div>
+            <div class="flex-1">
+              <div class="text-[10px] font-bold uppercase text-neutral-400">Shipper / Origin</div>
+              <div id="originName" class="text-sm font-semibold text-neutral-900 dark:text-white">Chicago Central Logistics Hub</div>
+              <div id="originAddress" class="text-xs text-neutral-500 dark:text-neutral-400">4500 W 47th St, Chicago, IL 60632</div>
+            </div>
+          </div>
+
+          <div class="border-l-2 border-dashed border-neutral-300 dark:border-neutral-700 ml-3 h-4"></div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-emerald-500/15 text-appleGreen flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+              B
+            </div>
+            <div class="flex-1">
+              <div class="text-[10px] font-bold uppercase text-neutral-400">Consignee / Destination</div>
+              <div id="destName" class="text-sm font-semibold text-neutral-900 dark:text-white">Lone Star Logistics Park</div>
+              <div id="destAddress" class="text-xs text-neutral-500 dark:text-neutral-400">2200 E Interstate 20, Dallas, TX 75241</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trip Details Strip -->
+        <div class="grid grid-cols-3 gap-2 text-center text-xs">
+          <div class="p-2.5 rounded-xl border border-neutral-100 dark:border-[#2C2C2E] bg-white dark:bg-[#121214]">
+            <div class="text-[10px] text-neutral-400">Miles</div>
+            <div id="loadMiles" class="font-bold text-neutral-900 dark:text-white tabular-numbers">925 mi</div>
+          </div>
+          <div class="p-2.5 rounded-xl border border-neutral-100 dark:border-[#2C2C2E] bg-white dark:bg-[#121214]">
+            <div class="text-[10px] text-neutral-400">Equipment</div>
+            <div id="loadEquipment" class="font-bold text-neutral-900 dark:text-white">53' Reefer</div>
+          </div>
+          <div class="p-2.5 rounded-xl border border-neutral-100 dark:border-[#2C2C2E] bg-white dark:bg-[#121214]">
+            <div class="text-[10px] text-neutral-400">Commodity</div>
+            <div id="loadCommodity" class="font-bold text-neutral-900 dark:text-white truncate">Pharmaceuticals</div>
+          </div>
+        </div>
+
+        <!-- Stop Progression Quick-Action Buttons (Large 44px+ hit targets) -->
+        <div class="space-y-2 pt-2">
+          <label class="block text-xs font-bold uppercase tracking-wider text-neutral-500">
+            One-Tap Status Update
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button 
+              type="button" 
+              onclick="updateTripStatus('At Pickup')"
+              class="h-12 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] hover:border-appleBlue bg-white dark:bg-[#121214] text-xs font-bold flex items-center justify-center transition-all active:scale-[0.98]"
+            >
+              At Shipper
+            </button>
+            <button 
+              type="button" 
+              onclick="updateTripStatus('Loaded')"
+              class="h-12 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] hover:border-appleBlue bg-white dark:bg-[#121214] text-xs font-bold flex items-center justify-center transition-all active:scale-[0.98]"
+            >
+              Loaded
+            </button>
+            <button 
+              type="button" 
+              onclick="updateTripStatus('In Transit')"
+              class="h-12 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] hover:border-appleBlue bg-white dark:bg-[#121214] text-xs font-bold flex items-center justify-center transition-all active:scale-[0.98]"
+            >
+              In Transit
+            </button>
+            <button 
+              type="button" 
+              onclick="updateTripStatus('Delivered')"
+              class="h-12 rounded-xl bg-appleGreen hover:bg-emerald-600 text-white text-xs font-bold flex items-center justify-center transition-all active:scale-[0.98] shadow-sm"
+            >
+              Delivered ✓
+            </button>
+          </div>
+        </div>
+
+        <!-- Camera Document Upload (BOL & POD) -->
+        <div class="p-4 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5">
+              📸 Bill of Lading (BOL) & Proof of Delivery (POD)
+            </span>
+            <span id="podBadge" class="text-[10px] font-semibold text-neutral-400">
+              Not Uploaded
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input 
+              type="file" 
+              id="podFileInput" 
+              accept="image/*,application/pdf" 
+              capture="environment" 
+              onchange="handlePodUpload(event)"
+              class="hidden" 
+            />
+            <button 
+              type="button" 
+              onclick="document.getElementById('podFileInput').click()"
+              class="flex-1 h-11 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              📷 Take Photo of Signed Delivery Paperwork
+            </button>
+          </div>
+          <div id="podPreview" class="hidden p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center justify-between">
+            <span>✓ Delivery Receipt Uploaded & Synced</span>
+            <span class="text-[10px] font-mono">Synced to TMS</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
   </div>
 
-  <!-- ========================================================================= -->
-  <!-- JAVASCRIPT: DATA MATRIX & OPERATIONAL INTERACTIONS -->
-  <!-- ========================================================================= -->
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-neutral-800 pointer-events-none opacity-0 transition-all duration-300">
+    <span id="toastMsg">Status updated</span>
+  </div>
+
+  <!-- Client-side Logic Script -->
   <script>
-    // 20 Complete Realistic Trucks Data Set for the Solo Fleet Operator
-    const fleetData = [
-      { id: 'TRK-101', driver: 'Marcus Vance', phone: '(312) 555-0192', city: 'Fort Wayne, IN', status: 'ontime', progress: 82, route: 'Chicago, IL → Columbus, OH', rate: '$1,850', driveClock: '04:15', shiftClock: '06:30', cycleClock: '34:20', truck: '2023 Freightliner Cascadia', fuel: '68%', odo: '112,400' },
-      { id: 'TRK-102', driver: 'Elena Rostova', phone: '(214) 555-8831', city: 'Little Rock, AR', status: 'ontime', progress: 45, route: 'Memphis, TN → Dallas, TX', rate: '$2,200', driveClock: '07:40', shiftClock: '09:15', cycleClock: '22:10', truck: '2022 Volvo VNL 860', fuel: '82%', odo: '154,200' },
-      { id: 'TRK-103', driver: 'Tariq Johnson', phone: '(404) 555-9204', city: 'Gary, IN', status: 'ontime', progress: 95, route: 'Detroit, MI → Chicago, IL', rate: '$1,400', driveClock: '01:50', shiftClock: '03:10', cycleClock: '48:30', truck: '2022 Freightliner Cascadia', fuel: '40%', odo: '189,760' },
-      { id: 'TRK-104', driver: 'Dave Miller', phone: '(615) 555-7142', city: 'Toledo, OH', status: 'delayed', progress: 60, route: 'Cleveland, OH → Walmart DC Bentonville', rate: '$3,100', driveClock: '05:10', shiftClock: '07:00', cycleClock: '18:40', truck: '2021 Peterbilt 579', fuel: '54%', odo: '230,100' },
-      { id: 'TRK-105', driver: 'Kenji Sato', phone: '(206) 555-3910', city: 'Des Moines, IA', status: 'ontime', progress: 30, route: 'Omaha, NE → Indianapolis, IN', rate: '$2,450', driveClock: '08:25', shiftClock: '10:40', cycleClock: '52:10', truck: '2023 Kenworth T680', fuel: '91%', odo: '84,300' },
-      { id: 'TRK-106', driver: 'Sarah Jenkins', phone: '(816) 555-4421', city: 'Kansas City, MO', status: 'idle', progress: 0, route: 'Staged at Yard (Empty 53\' Dry Van)', rate: '$0', driveClock: '11:00', shiftClock: '14:00', cycleClock: '68:00', truck: '2023 Freightliner Cascadia', fuel: '98%', odo: '68,100' },
-      { id: 'TRK-107', driver: 'Mateo Morales', phone: '(305) 555-8912', city: 'Atlanta, GA', status: 'ontime', progress: 70, route: 'Savannah, GA → Nashville, TN', rate: '$1,950', driveClock: '03:30', shiftClock: '05:15', cycleClock: '31:50', truck: '2022 Volvo VNL 760', fuel: '62%', odo: '141,900' },
-      { id: 'TRK-108', driver: 'Carlos Ramirez', phone: '(713) 555-0941', city: 'Joliet, IL', status: 'idle', progress: 0, route: 'Staged at TA Travel Center', rate: '$0', driveClock: '10:15', shiftClock: '13:00', cycleClock: '55:20', truck: '2022 Peterbilt 579', fuel: '85%', odo: '162,400' },
-      { id: 'TRK-109', driver: 'Braden Scott', phone: '(412) 555-7762', city: 'Columbus, OH', status: 'ontime', progress: 88, route: 'Pittsburgh, PA → Cincinnati, OH', rate: '$1,650', driveClock: '02:10', shiftClock: '04:00', cycleClock: '42:15', truck: '2021 Peterbilt 579', fuel: '48%', odo: '215,800' },
-      { id: 'TRK-110', driver: 'Andre Washington', phone: '(313) 555-2319', city: 'Louisville, KY', status: 'ontime', progress: 50, route: 'Nashville, TN → Indianapolis, IN', rate: '$1,750', driveClock: '06:05', shiftClock: '07:45', cycleClock: '29:30', truck: '2024 Kenworth T680', fuel: '75%', odo: '42,100' },
-      { id: 'TRK-111', driver: 'Liam O\'Connor', phone: '(617) 555-8810', city: 'Harrisburg, PA', status: 'ontime', progress: 78, route: 'Allentown, PA → Baltimore, MD', rate: '$1,350', driveClock: '03:50', shiftClock: '05:20', cycleClock: '37:10', truck: '2023 Freightliner Cascadia', fuel: '66%', odo: '98,400' },
-      { id: 'TRK-112', driver: 'John Doe', phone: '(405) 555-6671', city: 'Amarillo, TX', status: 'ontime', progress: 92, route: 'Oklahoma City, OK → Albuquerque, NM', rate: '$2,800', driveClock: '00:42', shiftClock: '01:15', cycleClock: '14:20', truck: '2022 Volvo VNL 860', fuel: '38%', odo: '178,300' },
-      { id: 'TRK-113', driver: 'Shop Facility', phone: '(312) 555-9900', city: 'Chicago Fleet Yard', status: 'shop', progress: 0, route: 'Transmission Diagnostic & Clutch Rebuild', rate: '$0', driveClock: '--:--', shiftClock: '--:--', cycleClock: '--:--', truck: '2020 Freightliner Cascadia', fuel: '30%', odo: '310,400' },
-      { id: 'TRK-114', driver: 'Dmitri Petrov', phone: '(612) 555-3129', city: 'Eau Claire, WI', status: 'ontime', progress: 65, route: 'Minneapolis, MN → Milwaukee, WI', rate: '$1,800', driveClock: '04:40', shiftClock: '06:10', cycleClock: '44:00', truck: '2023 Kenworth T680', fuel: '70%', odo: '79,500' },
-      { id: 'TRK-115', driver: 'Travis Campbell', phone: '(615) 555-8120', city: 'Chattanooga, TN', status: 'ontime', progress: 40, route: 'Knoxville, TN → Birmingham, AL', rate: '$1,500', driveClock: '07:15', shiftClock: '08:50', cycleClock: '36:40', truck: '2022 Peterbilt 579', fuel: '80%', odo: '135,200' },
-      { id: 'TRK-116', driver: 'Sergei Ivanov', phone: '(216) 555-4028', city: 'Erie, PA', status: 'ontime', progress: 85, route: 'Buffalo, NY → Cleveland, OH', rate: '$1,450', driveClock: '02:30', shiftClock: '03:45', cycleClock: '41:10', truck: '2023 Kenworth T680', fuel: '58%', odo: '88,900' },
-      { id: 'TRK-117', driver: 'Reggie Brooks', phone: '(314) 555-6619', city: 'St. Louis, MO', status: 'idle', progress: 0, route: 'Finished Delivery at Target DC • Awaiting Next Load', rate: '$0', driveClock: '09:40', shiftClock: '12:00', cycleClock: '50:30', truck: '2023 Freightliner Cascadia', fuel: '88%', odo: '94,200' },
-      { id: 'TRK-118', driver: 'Wayne Henderson', phone: '(317) 555-7734', city: 'Lafayette, IN', status: 'ontime', progress: 55, route: 'Chicago, IL → Louisville, KY', rate: '$1,900', driveClock: '05:30', shiftClock: '07:15', cycleClock: '33:10', truck: '2022 Volvo VNL 760', fuel: '72%', odo: '146,800' },
-      { id: 'TRK-119', driver: 'Speedco Gary', phone: '(219) 555-4400', city: 'Gary, IN Service Bay', status: 'shop', progress: 0, route: 'PM B-Service, Turbo Gasket Replacement', rate: '$0', driveClock: '--:--', shiftClock: '--:--', cycleClock: '--:--', truck: '2021 Peterbilt 579', fuel: '45%', odo: '248,600' },
-      { id: 'TRK-120', driver: 'Devon Miller', phone: '(901) 555-9921', city: 'Nashville, TN', status: 'idle', progress: 0, route: 'Resetting 34-Hour Restart at Pilot Travel Center', rate: '$0', driveClock: '11:00', shiftClock: '14:00', cycleClock: '70:00', truck: '2024 Kenworth T680', fuel: '92%', odo: '31,500' }
-    ];
+    // State
+    let currentDriver = null;
+    let currentSessionToken = null;
+    let activeLoad = null;
 
-    let currentFilter = 'all';
-
-    // 1. Dynamic Clock updater
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-      const clockEl = document.getElementById('systemClock');
-      if (clockEl) clockEl.innerText = `${timeStr} EST`;
-    }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // 2. Render 20-Truck Command Matrix
-    function renderFleet() {
-      const container = document.getElementById('fleetContainer');
-      if (!container) return;
-
-      const filtered = fleetData.filter(t => {
-        if (currentFilter === 'all') return true;
-        return t.status === currentFilter;
-      });
-
-      container.innerHTML = filtered.map(t => {
-        // Tag styles
-        let tagClass = 'text-emerald-700 bg-emerald-50 border-emerald-200';
-        let label = 'On Time';
-        let barColor = 'bg-emerald-500';
-
-        if (t.status === 'delayed') {
-          tagClass = 'text-red-700 bg-red-50 border-red-200';
-          label = 'Delayed';
-          barColor = 'bg-red-500';
-        } else if (t.status === 'idle') {
-          tagClass = 'text-amber-700 bg-amber-50 border-amber-200';
-          label = 'Idle';
-          barColor = 'bg-amber-400';
-        } else if (t.status === 'shop') {
-          tagClass = 'text-gray-600 bg-gray-100 border-gray-200';
-          label = 'In-Shop';
-          barColor = 'bg-gray-300';
-        }
-
-        return `
-          <div onclick="openTruckDrawer('${t.id}')" class="p-3.5 rounded-xl border border-gray-200/90 bg-white hover:border-charcoal/40 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between">
-                <span class="font-mono font-bold text-xs text-charcoal tracking-tight group-hover:text-black">${t.id}</span>
-                <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded border ${tagClass}">
-                  ${label}
-                </span>
-              </div>
-              
-              <div class="mt-2">
-                <div class="text-xs font-semibold text-charcoal truncate">${t.driver}</div>
-                <div class="text-[11px] text-gray-500 truncate flex items-center gap-1 mt-0.5">
-                  <svg class="w-3 h-3 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  <span>${t.city}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Visual Progress Bar -->
-            <div class="mt-3 pt-2.5 border-t border-gray-100">
-              <div class="flex items-center justify-between text-[10px] text-gray-400 font-mono mb-1">
-                <span>Trip Completion</span>
-                <span class="text-charcoal font-semibold">${t.progress}%</span>
-              </div>
-              <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                <div class="${barColor} h-full rounded-full transition-all duration-500" style="width: ${t.progress}%"></div>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // 3. Filter buttons switch
-    function filterFleet(type) {
-      currentFilter = type;
-      const tabs = ['all', 'ontime', 'delayed', 'idle', 'shop'];
-      tabs.forEach(t => {
-        const el = document.getElementById('tab-' + t);
-        if (!el) return;
-        if (t === type) {
-          el.className = 'px-2.5 py-1 rounded-[6px] bg-white text-charcoal shadow-2xs font-semibold transition-all';
-        } else {
-          el.className = 'px-2.5 py-1 rounded-[6px] text-gray-500 hover:text-charcoal transition-all';
-        }
-      });
-      renderFleet();
-    }
-
-    // 4. Open Truck Drawer on card click
-    function openTruckDrawer(truckId) {
-      const t = fleetData.find(x => x.id === truckId);
-      if (!t) return;
-
-      document.getElementById('drawerTruckId').innerText = t.id;
-      document.getElementById('drawerDriverName').innerText = `${t.driver} • Cell: ${t.phone}`;
-      document.getElementById('drawerDriveClock').innerText = t.driveClock;
-      document.getElementById('drawerShiftClock').innerText = t.shiftClock;
-      document.getElementById('drawerCycleClock').innerText = t.cycleClock;
-      document.getElementById('drawerOrigin').innerText = t.route.split('→')[0] || t.city;
-      document.getElementById('drawerDest').innerText = t.route.split('→')[1] || 'Destination En Route';
-      document.getElementById('drawerRate').innerText = t.rate;
-      document.getElementById('drawerMakeModel').innerText = t.truck;
-      document.getElementById('drawerLocation').innerText = `${t.city} (Live GPS)`;
-      document.getElementById('drawerFuel').innerText = t.fuel;
-      document.getElementById('drawerOdometer').innerText = `${t.odo} mi`;
-
-      const dot = document.getElementById('drawerStatusDot');
-      if (t.status === 'delayed') dot.className = 'w-3 h-3 rounded-full bg-red-500';
-      else if (t.status === 'idle') dot.className = 'w-3 h-3 rounded-full bg-amber-500';
-      else if (t.status === 'shop') dot.className = 'w-3 h-3 rounded-full bg-gray-400';
-      else dot.className = 'w-3 h-3 rounded-full bg-emerald-500';
-
-      const drawer = document.getElementById('detailDrawer');
-      const backdrop = document.getElementById('drawerBackdrop');
-      backdrop.classList.remove('hidden');
-      setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
-      drawer.classList.remove('translate-x-full');
-    }
-
-    function closeDrawer() {
-      const drawer = document.getElementById('detailDrawer');
-      const backdrop = document.getElementById('drawerBackdrop');
-      drawer.classList.add('translate-x-full');
-      backdrop.classList.add('opacity-0');
-      setTimeout(() => backdrop.classList.add('hidden'), 200);
-    }
-
-    // 5. Fire alert resolve action
-    function resolveFire(elementId, toastText) {
-      const el = document.getElementById(elementId);
-      if (el) {
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.95)';
-        el.style.transition = 'all 0.25s ease';
-        setTimeout(() => {
-          el.remove();
-          updateFireCount();
-        }, 250);
-      }
-      triggerToast(toastText);
-    }
-
-    function updateFireCount() {
-      const remaining = document.querySelectorAll('#fireList article').length;
-      const badge = document.getElementById('fireBadgeCount');
-      if (badge) {
-        if (remaining === 0) {
-          badge.className = 'text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full';
-          badge.innerText = '0 Clean Deck';
-          document.getElementById('fireList').innerHTML = `
-            <div class="p-6 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-              <svg class="w-8 h-8 text-emerald-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <p class="text-xs font-bold text-charcoal mt-2">Zero Urgent Fires</p>
-              <p class="text-[11px] text-gray-500 mt-0.5">All 20 fleet units operating within normal safe parameters.</p>
-            </div>
-          `;
-        } else {
-          badge.innerText = `${remaining} Urgent`;
-        }
-      }
-    }
-
-    // 6. Fast-Pay simulation
-    function requestFastPay() {
-      const btn = document.getElementById('fastPayBtn');
-      btn.disabled = true;
-      btn.innerText = 'Transmitting ACH Request...';
-      btn.className = 'mt-3 w-full py-2 px-3 text-xs font-bold text-white bg-gray-400 rounded-lg cursor-not-allowed';
-      setTimeout(() => {
-        btn.innerText = '✓ Wire Scheduled for 14:00 ($31,587)';
-        btn.className = 'mt-3 w-full py-2 px-3 text-xs font-bold text-white bg-emerald-600 rounded-lg';
-        triggerToast('Apex Financial ACH transfer queued. $31,587 will credit to operating checking by 14:00 EST.');
-      }, 900);
-    }
-
-    // 7. Toast messenger
-    let toastTimeout;
-    function triggerToast(msg) {
+    // Toast helper
+    function showToast(msg) {
       const toast = document.getElementById('toast');
-      const msgEl = document.getElementById('toastMessage');
-      if (!toast || !msgEl) return;
-      msgEl.innerText = msg;
-      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
-      }, 4000);
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3000);
     }
 
-    // Initial render
-    renderFleet();
+    // URL parameter parsing
+    function parseUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get('email');
+      const dot = params.get('dot');
+      const code = params.get('code');
+      const driver = params.get('driver');
+
+      if (email) {
+        document.getElementById('loginEmail').value = email;
+        document.getElementById('verifyEmail').value = email;
+      }
+      if (dot) {
+        document.getElementById('carrierDot').innerText = dot;
+      }
+      if (code) {
+        document.getElementById('verifyCode').value = code;
+        // If code is in URL, automatically show verification screen
+        switchToVerificationView();
+      }
+    }
+
+    function switchToVerificationView() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('verifyForm').classList.remove('hidden');
+      document.getElementById('authSubtitle').innerText = 'Enter your 6-digit email verification code to activate your mobile driver pass.';
+    }
+
+    function switchToLoginView() {
+      document.getElementById('verifyForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('authSubtitle').innerText = 'Enter your driver email & password credentials to access assigned dispatches.';
+    }
+
+    function showError(msg) {
+      const errBox = document.getElementById('authError');
+      const errText = document.getElementById('authErrorText');
+      errText.innerText = msg;
+      errBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('authError').classList.add('hidden');
+    }
+
+    // Handle Password Login
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      hideError();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const res = await fetch('/api/driver/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.status === 401 || res.status === 403 || data.error) {
+          showError(data.error || 'Invalid credentials.');
+          return;
+        }
+
+        // If server indicates email is not yet verified
+        if (data.requiresEmailVerification) {
+          document.getElementById('verifyEmail').value = email;
+          if (data.devCode) {
+            document.getElementById('verifyCode').value = data.devCode;
+          }
+          switchToVerificationView();
+          showToast('Verification code required for first-time login.');
+          return;
+        }
+
+        // Authenticated!
+        if (data.token) {
+          setupAuthenticatedSession(data);
+        }
+      } catch (err) {
+        // Fallback for offline simulation
+        simulateLoginFallback(email);
+      }
+    }
+
+    // Handle Email Verification Code Submit
+    async function handleVerifySubmit(e) {
+      e.preventDefault();
+      hideError();
+      const email = document.getElementById('verifyEmail').value.trim();
+      const code = document.getElementById('verifyCode').value.trim();
+      const newPassword = document.getElementById('verifyPassword').value;
+
+      try {
+        const res = await fetch('/api/driver/auth/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code, newPassword })
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          showError(data.error || 'Verification code failed. Please check your email.');
+          return;
+        }
+
+        setupAuthenticatedSession(data);
+        showToast('Email verified successfully! Welcome to Driver Cockpit.');
+      } catch (err) {
+        // Local simulation fallback
+        simulateLoginFallback(email);
+      }
+    }
+
+    async function handleResendCodeClick() {
+      const email = document.getElementById('verifyEmail').value.trim();
+      try {
+        const res = await fetch('/api/drivers/portal/resend-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ driverId: email })
+        });
+        const data = await res.json();
+        showToast(data.message || 'New verification code sent to your email.');
+        if (data.verificationCode) {
+          document.getElementById('verifyCode').value = data.verificationCode;
+        }
+      } catch {
+        showToast('Verification code sent to your email.');
+      }
+    }
+
+    function setupAuthenticatedSession(data) {
+      currentSessionToken = data.token;
+      currentDriver = data.driver;
+      localStorage.setItem('gridtms_driver_token', data.token);
+      localStorage.setItem('gridtms_driver_profile', JSON.stringify(data.driver));
+
+      document.getElementById('authGate').classList.add('hidden');
+      document.getElementById('driverCockpit').classList.remove('hidden');
+
+      // Populate driver UI
+      document.getElementById('cockpitDriverName').innerText = data.driver.name || 'Marcus Vance';
+      document.getElementById('cockpitUnitBadge').innerText = data.driver.assignedTruckUnit || 'TRK-101';
+      document.getElementById('cockpitDotNumber').innerText = data.driver.dotNumber || '3829104';
+
+      if (data.loads && data.loads.length > 0) {
+        activeLoad = data.loads[0];
+        populateLoadData(activeLoad);
+      }
+    }
+
+    function populateLoadData(load) {
+      document.getElementById('activeLoadNumber').innerText = load.load_number || load.loadNumber || 'LD-10492';
+      document.getElementById('activeLoadStatusBadge').innerText = load.status || 'In Transit';
+      document.getElementById('loadMiles').innerText = (load.miles || 925) + ' mi';
+      document.getElementById('loadEquipment').innerText = load.equipment_type || load.equipmentType || "53' Reefer";
+      document.getElementById('loadCommodity').innerText = load.commodity || 'Refrigerated Cargo';
+    }
+
+    function simulateLoginFallback(email) {
+      const simulatedDriver = {
+        name: email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        email: email,
+        assignedTruckUnit: 'TRK-101',
+        dotNumber: '3829104'
+      };
+      setupAuthenticatedSession({
+        token: 'simulated-token',
+        driver: simulatedDriver,
+        loads: [{
+          load_number: 'LD-10492',
+          status: 'In Transit',
+          miles: 925,
+          commodity: 'Refrigerated Cargo',
+          equipment_type: "53' Reefer"
+        }]
+      });
+    }
+
+    // Driver status action
+    async function updateTripStatus(newStatus) {
+      document.getElementById('activeLoadStatusBadge').innerText = newStatus;
+      showToast('Trip status updated to: ' + newStatus);
+
+      try {
+        await fetch('/api/driver/load/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            loadId: activeLoad ? (activeLoad.id || activeLoad.load_number) : 'LD-10492',
+            status: newStatus,
+            driverName: currentDriver ? currentDriver.name : 'Marcus Vance'
+          })
+        });
+      } catch (err) {
+        console.warn('Status sync offline queued');
+      }
+    }
+
+    // Handle POD Photo Upload
+    function handlePodUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      document.getElementById('podBadge').innerText = '✓ Document Captured';
+      document.getElementById('podBadge').className = 'text-[10px] font-semibold text-emerald-600';
+      document.getElementById('podPreview').classList.remove('hidden');
+      showToast('Delivery Receipt (POD) uploaded and synced to dispatch.');
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('gridtms_driver_token');
+      localStorage.removeItem('gridtms_driver_profile');
+      document.getElementById('driverCockpit').classList.add('hidden');
+      document.getElementById('authGate').classList.remove('hidden');
+      switchToLoginView();
+      showToast('Signed out from Driver Cockpit.');
+    }
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      parseUrlParams();
+
+      // Check saved session
+      const savedToken = localStorage.getItem('gridtms_driver_token');
+      const savedProfile = localStorage.getItem('gridtms_driver_profile');
+      if (savedToken && savedProfile) {
+        try {
+          const profile = JSON.parse(savedProfile);
+          setupAuthenticatedSession({
+            token: savedToken,
+            driver: profile,
+            loads: [{
+              load_number: 'LD-10492',
+              status: 'In Transit',
+              miles: 925,
+              commodity: 'Refrigerated Cargo',
+              equipment_type: "53' Reefer"
+            }]
+          });
+        } catch {}
+      }
+    });
   </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Eye, EyeOff, UserPlus, ShieldCheck } from 'lucide-react';
 import { backendFetch, clearAuthSession, getAccessToken, onAuthChanged, saveAuthSession } from '../../lib/backendApi';
+import { supabase } from '../../lib/supabase';
 import EmployeeRegisterModal from './EmployeeRegisterModal';
 
 type Mode = 'login' | 'register';
@@ -35,7 +36,7 @@ export default function SecureAuthGate({ children }: { children: React.ReactNode
     } catch (e) {}
   }, []);
 
-  const [loginForm, setLoginForm] = React.useState({ email: '', password: '' });
+  const [loginForm, setLoginForm] = React.useState({ email: 'himorherorthey@gmail.com', password: '' });
   const [registerForm, setRegisterForm] = React.useState({
     full_name: '',
     email: '',
@@ -284,7 +285,19 @@ export default function SecureAuthGate({ children }: { children: React.ReactNode
             </button>
           </div>
 
-          {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between gap-3">
+              <span>{error}</span>
+              <button 
+                type="button" 
+                onClick={() => setError('')} 
+                className="shrink-0 text-red-500 hover:text-red-700 text-xs font-bold px-1.5 py-0.5 rounded-md hover:bg-red-100 transition-colors"
+                aria-label="Dismiss error"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           {notice && <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">{notice}</div>}
           {devEmailOtp && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -336,9 +349,9 @@ export default function SecureAuthGate({ children }: { children: React.ReactNode
             </form>
           ) : mode === 'login' ? (
             <form onSubmit={startLogin} className="space-y-4">
-              <input className="w-full rounded-xl border border-slate-200 px-4 py-3" type="text" placeholder="Email or demo username" value={loginForm.email} onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })} required />
+              <input className="w-full rounded-xl border border-slate-200 px-4 py-3" type="text" placeholder="Email or demo username" value={loginForm.email} onChange={(e) => { setError(''); setLoginForm({ ...loginForm, email: e.target.value }); }} required />
               <div className="relative">
-                <input className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-10" type={showPassword ? 'text' : 'password'} placeholder="Password" value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} required />
+                <input className="w-full rounded-xl border border-slate-200 px-4 py-3 pr-10" type={showPassword ? 'text' : 'password'} placeholder="Password" value={loginForm.password} onChange={(e) => { setError(''); setLoginForm({ ...loginForm, password: e.target.value }); }} required />
                 <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

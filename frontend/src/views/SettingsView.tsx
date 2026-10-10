@@ -961,7 +961,7 @@ export const updateLoadStatus = (token, loadId, status) => driverApi('/loads/' +
                       onClick={() => {
                         const env = `# In your Driver App .env or Project Environment Variables:
 VITE_SUPABASE_URL=https://durwofqudkmhxdxdfonl.supabase.co
-VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1cndvZnF1ZGttaHhkeGRmb25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3Nzk5MzUsImV4cCI6MjEwNjM1NTkzNX0.NvQphSxWl5pQSBV9CdZvRzZEkB0qXxC14U0IbzGnqO4
 VITE_STORAGE_BUCKET=documents
 VITE_GRIDTMS_API_URL=https://gridtms.ai
 `;

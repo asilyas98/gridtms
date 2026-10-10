@@ -23,12 +23,16 @@ import {
   ShieldAlert,
   Settings,
   Eye,
-  Info
+  Info,
+  Smartphone,
+  QrCode
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { Driver, Truck as TruckType, ComplianceDocument } from '../types';
 import { getDriverCompliance, getTruckCompliance } from '../utils/complianceHelper';
+import DriverPortalTab from '../components/drivers/DriverPortalTab';
+import FleetPortalTab from '../components/fleet/FleetPortalTab';
 
 import { uploadFileToSupabase } from '../lib/storage';
 
@@ -48,7 +52,7 @@ export default function AssetsView() {
     navigationIntent,
     setNavigationIntent
   } = useData();
-  const [activeTab, setActiveTab] = useState<'Drivers' | 'Units'>('Drivers');
+  const [activeTab, setActiveTab] = useState<'FleetPortal' | 'DriverPortal'>('FleetPortal');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Custom navigation state
@@ -66,23 +70,26 @@ export default function AssetsView() {
       if (navigationIntent.action === 'edit_driver' && navigationIntent.driverId) {
         const d = drivers.find(drv => drv.id === navigationIntent.driverId);
         if (d) {
-          setActiveTab('Drivers');
+          setActiveTab('DriverPortal');
           setSelectedDriver(d);
           setDriverModalTab((navigationIntent.tab as 'dossier' | 'settlements' | 'changelog' | 'dotAudit') || 'dossier');
         }
       } else if (navigationIntent.action === 'edit_truck' && navigationIntent.truckId) {
         const t = trucks.find(trk => trk.id === navigationIntent.truckId);
         if (t) {
-          setActiveTab('Units');
+          setActiveTab('FleetPortal');
           setSelectedTruck(t);
           setTruckModalTab((navigationIntent.tab as 'specs' | 'dotAudit') || 'specs');
         }
       }
       
+      if (navigationIntent.tab === 'FleetPortal' || navigationIntent.tab === 'Fleet' || navigationIntent.tab === 'Trucks' || navigationIntent.tab === 'Units') {
+        setActiveTab('FleetPortal');
+      } else if (navigationIntent.tab === 'DriverPortal' || navigationIntent.tab === 'Drivers') {
+        setActiveTab('DriverPortal');
+      }
+      
       if (navigationIntent.searchQuery) {
-        if (navigationIntent.tab === 'Drivers' || navigationIntent.tab === 'Trucks' || navigationIntent.tab === 'Units') {
-          setActiveTab(navigationIntent.tab === 'Trucks' ? 'Units' : 'Drivers');
-        }
         setSearchQuery(navigationIntent.searchQuery);
       }
       setNavigationIntent(null);
@@ -1494,52 +1501,76 @@ export default function AssetsView() {
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-head font-extrabold text-navy-dark tracking-tight">Asset Management</h2>
-                <p className="text-sm text-slate-500">Manage your fleet of drivers and power units.</p>
+                <p className="text-sm text-slate-500">Manage your fleet of drivers, power units, and driver app access.</p>
               </div>
-              <div className="flex gap-2">
-                 <div className="flex bg-white rounded-lg border border-slate-200 p-1 shadow-sm h-10">
+              <div className="flex flex-wrap items-center gap-2">
+                 <div className="flex bg-white dark:bg-[#1C1C1E] rounded-xl border border-slate-200 dark:border-[#2C2C2E] p-1 shadow-sm h-10">
                     <button 
-                      onClick={() => setActiveTab('Drivers')}
-                      className={`px-6 py-1 text-[10px] font-bold uppercase tracking-widest transition-all rounded ${activeTab === 'Drivers' ? 'bg-navy text-white' : 'text-slate-400 hover:text-navy'}`}
+                      onClick={() => setActiveTab('FleetPortal')}
+                      className={`px-4 py-1 text-xs font-semibold tracking-wide transition-all rounded-lg flex items-center gap-1.5 ${activeTab === 'FleetPortal' ? 'bg-navy dark:bg-white text-white dark:text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-navy dark:hover:text-white'}`}
                     >
-                      Drivers
+                      <Truck size={14} className={activeTab === 'FleetPortal' ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'} />
+                      <span>Fleet Portal</span>
                     </button>
                     <button 
-                      onClick={() => setActiveTab('Units')}
-                      className={`px-6 py-1 text-[10px] font-bold uppercase tracking-widest transition-all rounded ${activeTab === 'Units' ? 'bg-navy text-white' : 'text-slate-400 hover:text-navy'}`}
+                      onClick={() => setActiveTab('DriverPortal')}
+                      className={`px-4 py-1 text-xs font-semibold tracking-wide transition-all rounded-lg flex items-center gap-1.5 ${activeTab === 'DriverPortal' ? 'bg-navy dark:bg-white text-white dark:text-neutral-900 shadow-sm' : 'text-slate-500 hover:text-navy dark:hover:text-white'}`}
                     >
-                      Units
+                      <Smartphone size={14} className={activeTab === 'DriverPortal' ? 'text-blue-500 dark:text-blue-600' : 'text-slate-400'} />
+                      <span>Driver Portal</span>
                     </button>
                  </div>
-                 <button 
-                   onClick={() => {
-                     setCreationClass(activeTab === 'Drivers' ? 'Driver' : 'Truck');
-                     setShowCreationMode(true);
-                   }}
-                   className="bg-orange text-white h-10 px-6 rounded-lg text-xs font-bold uppercase tracking-widest shadow-lg shadow-orange/20 hover:bg-orange-light transition-all flex items-center gap-2 cursor-pointer"
-                 >
-                   <Plus size={16} /> Add {activeTab === 'Drivers' ? 'Driver' : 'Unit'}
-                 </button>
               </div>
             </header>
 
-            {/* Asset Search */}
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange transition-colors" size={18} />
-              <input 
-                type="text"
-                placeholder={`Search ${activeTab.toLowerCase()}...`}
-                className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm outline-none focus:border-orange focus:ring-4 focus:ring-orange/5 transition-all shadow-sm text-black dark:text-white"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+            {activeTab === 'FleetPortal' ? (
+              <FleetPortalTab
+                trucks={trucks}
+                drivers={drivers}
+                onOpenTruckSpecs={(trk) => {
+                  setSelectedTruck(trk);
+                  setTruckModalTab('specs');
+                }}
+                onAddUnit={() => {
+                  setCreationClass('Truck');
+                  setShowCreationMode(true);
+                }}
               />
-            </div>
+            ) : (
+              <DriverPortalTab 
+                drivers={drivers} 
+                trucks={trucks} 
+                onOpenDriverDossier={(drv) => {
+                  setSelectedDriver(drv);
+                  setDriverModalTab('dossier');
+                }} 
+                onAddDriver={() => {
+                  setCreationClass('Driver');
+                  setShowCreationMode(true);
+                }}
+              />
+            )}
 
-            {/* Grid display layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeTab === 'Drivers' ? (
-                filteredDrivers.map(driver => {
-                  const assignedTruck = trucks.find(t => t.id === driver.truckId);
+            {/* Legacy Assets Grid Deprecated */}
+            {false && (
+              <>
+                {/* Asset Search */}
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-orange transition-colors" size={18} />
+                  <input 
+                    type="text"
+                    placeholder={`Search ${activeTab.toLowerCase()}...`}
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm outline-none focus:border-orange focus:ring-4 focus:ring-orange/5 transition-all shadow-sm text-black dark:text-white"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+
+                {/* Grid display layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {activeTab === 'Drivers' ? (
+                    filteredDrivers.map(driver => {
+                      const assignedTruck = trucks.find(t => t.id === driver.truckId);
                   return (
                     <div 
                       key={driver.id} 
@@ -1766,9 +1797,11 @@ export default function AssetsView() {
                 })
               )}
             </div>
-          </motion.div>
+          </>
         )}
-      </AnimatePresence>
+      </motion.div>
+    )}
+  </AnimatePresence>
 
       {/* Assign Truck Modal */}
       <AnimatePresence>

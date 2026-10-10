@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const DEFAULT_SUPABASE_URL = 'https://durwofqudkmhxdxdfonl.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_y-SvA_EmxZH_qrW8oGPM1g_kM472V6A';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1cndvZnF1ZGttaHhkeGRmb25sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3Nzk5MzUsImV4cCI6MjEwNjM1NTkzNX0.NvQphSxWl5pQSBV9CdZvRzZEkB0qXxC14U0IbzGnqO4';
 
 const getEnv = (key: string): string | undefined => {
   try {

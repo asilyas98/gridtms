@@ -332,4 +332,62 @@ export interface CompanyUser {
   permissions: UserPermissions;
 }
 
+export interface DriverAccount {
+  id: string;
+  driverId: string;
+  driverName: string;
+  email: string;
+  phone: string;
+  dotNumber: string;
+  assignedTruckId?: string;
+  assignedTruckUnit?: string;
+  portalStatus: 'Active' | 'Pending Verification' | 'Suspended';
+  emailVerified: boolean;
+  verificationCode?: string;
+  verificationExpiresAt?: string;
+  temporaryPassword?: string;
+  lastActive?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FleetMaintenanceRecord {
+  id: string;
+  truckId: string;
+  unitNumber: string;
+  serviceType: 'PM-A Service' | 'PM-B Service' | 'Oil & Lube' | 'Brake Inspection' | 'Tire Replacement' | 'Annual DOT Inspection' | 'Engine Repair' | 'Emergency Repair';
+  serviceDate: string;
+  odometer: number;
+  cost: number;
+  mechanicNotes: string;
+  technician: string;
+  status: 'Completed' | 'Scheduled';
+  createdAt: string;
+}
+
+export interface FleetPortalUnit extends Truck {
+  nextPmOdometer?: number;
+  milesUntilPm?: number;
+  lastServiceDate?: string;
+  lastDvirStatus?: 'Passed' | 'Defects Reported' | 'Pending';
+  lastDvirDate?: string;
+  dvirStatus?: 'Passed' | 'Defects Reported' | 'Pending';
+  dvirDate?: string;
+  assignedDriverName?: string;
+  maintenanceRecords?: FleetMaintenanceRecord[];
+}
+
+export interface DvirInspectionReport {
+  id: string;
+  truckId: string;
+  unitNumber: string;
+  inspectorName: string;
+  odometer: number;
+  type: 'Pre-Trip' | 'Post-Trip';
+  dvirStatus: 'Passed' | 'Defects Reported';
+  defects: string[];
+  notes?: string;
+  signatureDate: string;
+}
+
 

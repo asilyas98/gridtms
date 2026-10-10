@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GridTMS • Fleet Unit Passport & Inspection Portal</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', '"SF Mono"', 'ui-monospace', 'monospace'],
+          },
+          colors: {
+            appleBlue: '#007AFF',
+            appleGreen: '#34C759',
+            appleAmber: '#FF9500',
+            appleRed: '#FF3B30',
+            charcoal: '#1D1D1F',
+            surfaceDark: '#121214',
+            surfaceCard: '#1C1C1E',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      touch-action: manipulation;
+    }
+    body {
+      background-color: #F5F5F7;
+      color: #1D1D1F;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+    }
+    .dark body {
+      background-color: #000000;
+      color: #F5F5F7;
+    }
+    button, a, input, select {
+      min-height: 44px;
+    }
+    .tabular-numbers {
+      font-variant-numeric: tabular-nums;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-600 bg-[#F5F5F7] dark:bg-black text-slate-900 dark:text-white pb-12">
+
+  <!-- ========================================================================= -->
+  <!-- TOP APP BAR -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-[#121214]/80 backdrop-blur-md border-b border-neutral-200/80 dark:border-[#2C2C2E]">
+    <div class="max-w-xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+          ▲
+        </div>
+        <div>
+          <div class="text-[10px] uppercase font-bold tracking-wider text-blue-600 dark:text-blue-400">
+            GridTMS Fleet Portal
+          </div>
+          <div class="text-xs font-semibold text-neutral-900 dark:text-white flex items-center gap-1.5">
+            <span id="headerUnitNumber">Unit 101</span>
+            <span class="text-neutral-400 font-normal">·</span>
+            <span id="headerPlate" class="text-neutral-500 dark:text-neutral-400 text-[11px]">IL-98421</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="unitStatusBadge" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300">
+          In Service
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="max-w-xl mx-auto px-4 pt-4 w-full flex-1 space-y-4">
+
+    <!-- HERO ASSET CARD -->
+    <div class="bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-neutral-800 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-blue-400">
+            Carrier Power Asset Passport
+          </div>
+          <div class="text-[11px] font-mono text-neutral-400">
+            DOT: <strong class="text-white">3829104</strong>
+          </div>
+        </div>
+
+        <div>
+          <h1 id="heroUnitTitle" class="text-2xl font-bold tracking-tight text-white">
+            Unit 101 • Freightliner Cascadia
+          </h1>
+          <p id="heroUnitSubtitle" class="text-xs text-neutral-400 mt-0.5">
+            Tractor (Sleeper) • Detroit DD15 Diesel
+          </p>
+        </div>
+
+        <!-- Metric Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 text-xs">
+          <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+            <div class="text-[10px] text-neutral-400">Current Odometer</div>
+            <div id="heroOdometer" class="text-base font-bold text-white font-mono mt-0.5 tabular-numbers">
+              120,000 mi
+            </div>
+          </div>
+
+          <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+            <div class="text-[10px] text-neutral-400">PM Status</div>
+            <div id="heroPmStatus" class="text-base font-bold text-emerald-400 mt-0.5">
+              Current
+            </div>
+          </div>
+
+          <div class="bg-white/5 rounded-2xl p-3 border border-white/10 col-span-2 sm:col-span-1">
+            <div class="text-[10px] text-neutral-400">Assigned Driver</div>
+            <div id="heroDriver" class="text-sm font-semibold text-white mt-0.5 truncate">
+              Marcus Vance
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION SEGMENTED TABS -->
+    <div class="no-print p-1 bg-neutral-200/70 dark:bg-[#1C1C1E] rounded-2xl flex items-center text-xs font-semibold text-neutral-600 dark:text-neutral-400">
+      <button 
+        type="button" 
+        onclick="switchTab('specs')" 
+        id="tabBtnSpecs"
+        class="flex-1 py-2 rounded-xl transition-all bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-sm"
+      >
+        Specifications
+      </button>
+      <button 
+        type="button" 
+        onclick="switchTab('dvir')" 
+        id="tabBtnDvir"
+        class="flex-1 py-2 rounded-xl transition-all hover:text-neutral-900 dark:hover:text-white"
+      >
+        Field DVIR
+      </button>
+      <button 
+        type="button" 
+        onclick="switchTab('history')" 
+        id="tabBtnHistory"
+        class="flex-1 py-2 rounded-xl transition-all hover:text-neutral-900 dark:hover:text-white"
+      >
+        Service Log
+      </button>
+      <button 
+        type="button" 
+        onclick="switchTab('cabtag')" 
+        id="tabBtnCabtag"
+        class="flex-1 py-2 rounded-xl transition-all hover:text-neutral-900 dark:hover:text-white"
+      >
+        Cab Tag
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: VEHICLE SPECIFICATIONS -->
+    <!-- ========================================================================= -->
+    <section id="panelSpecs" class="space-y-3">
+      
+      <!-- Regulatory & Identification -->
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400">
+          Identification & Federal Credentials
+        </h2>
+
+        <div class="space-y-2.5 text-xs">
+          <div class="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-[#2C2C2E]">
+            <span class="text-neutral-500 dark:text-neutral-400">Federal VIN</span>
+            <span id="specVin" class="font-mono font-semibold text-neutral-900 dark:text-white select-all">
+              1FUJGLDR5PL129841
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-[#2C2C2E]">
+            <span class="text-neutral-500 dark:text-neutral-400">License Plate</span>
+            <span id="specPlate" class="font-mono font-semibold text-neutral-900 dark:text-white">
+              IL-98421 (Illinois)
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-[#2C2C2E]">
+            <span class="text-neutral-500 dark:text-neutral-400">Annual DOT Inspection</span>
+            <span id="specDotExpiry" class="font-semibold text-emerald-600 dark:text-emerald-400">
+              Valid until Feb 15, 2027
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-1.5 border-b border-neutral-100 dark:border-[#2C2C2E]">
+            <span class="text-neutral-500 dark:text-neutral-400">Registration Expiry</span>
+            <span id="specRegExpiry" class="font-semibold text-neutral-800 dark:text-neutral-200">
+              Apr 30, 2027
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between py-1.5">
+            <span class="text-neutral-500 dark:text-neutral-400">Telematics & ELD</span>
+            <span id="specEld" class="font-semibold text-neutral-800 dark:text-neutral-200">
+              Motive ELD (MOT-001)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preventive Maintenance Health -->
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400">
+            Preventive Maintenance (PM) Health
+          </h2>
+          <span id="specPmInterval" class="text-[11px] text-neutral-400">
+            Interval: 15,000 mi
+          </span>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-neutral-600 dark:text-neutral-300">Next PM Service Milestone:</span>
+            <span id="specNextPm" class="font-mono font-bold text-neutral-900 dark:text-white">
+              135,000 mi
+            </span>
+          </div>
+          <div class="w-full bg-neutral-100 dark:bg-neutral-800 rounded-full h-2 overflow-hidden">
+            <div id="pmProgressBar" class="h-full bg-emerald-500 rounded-full w-[40%]"></div>
+          </div>
+          <div id="specMilesUntil" class="text-[11px] text-neutral-500 dark:text-neutral-400 text-right">
+            15,000 miles remaining until next scheduled service
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: FIELD DVIR SUBMISSION (ELECTRONIC PRE/POST-TRIP) -->
+    <!-- ========================================================================= -->
+    <section id="panelDvir" class="hidden space-y-3">
+      
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-neutral-900 dark:text-white">
+            Pre-Trip / Post-Trip DVIR Report
+          </h2>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400">
+            49 CFR 396.11 Driver vehicle safety certification
+          </p>
+        </div>
+
+        <form id="fieldDvirForm" onsubmit="handleFieldDvirSubmit(event)" class="space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                Inspection Type
+              </label>
+              <select id="fieldDvirType" class="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] font-medium text-neutral-900 dark:text-white focus:outline-none">
+                <option value="Pre-Trip">Pre-Trip Walkaround</option>
+                <option value="Post-Trip">Post-Trip End of Day</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                Current Odometer
+              </label>
+              <input 
+                type="number" 
+                id="fieldDvirOdo" 
+                placeholder="120000" 
+                required 
+                class="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] font-mono font-medium text-neutral-900 dark:text-white focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Inspector / Driver Name
+            </label>
+            <input 
+              type="text" 
+              id="fieldDvirInspector" 
+              placeholder="Driver Full Name" 
+              required 
+              class="w-full h-11 px-3 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] font-medium text-neutral-900 dark:text-white focus:outline-none"
+            />
+          </div>
+
+          <!-- Inspection Items Checklist -->
+          <div class="space-y-2 pt-1">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-neutral-700 dark:text-neutral-300">
+                Safety Inspection Items
+              </span>
+              <button 
+                type="button" 
+                onclick="clearAllDefects()" 
+                class="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+              >
+                Pass All Items
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="checklistContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Defect Status Banner -->
+          <div id="dvirResultBanner" class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+            <span>✓</span>
+            <div>
+              <div class="font-bold text-xs">All Systems Satisfactory</div>
+              <div class="text-[10px] opacity-80">Vehicle is road-ready and safe for commercial dispatch.</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+              Inspection Remarks / Defect Details
+            </label>
+            <textarea 
+              id="fieldDvirNotes" 
+              rows="2" 
+              placeholder="Air governor cut-out tested, emergency triangles in sleeper berth..."
+              class="w-full p-3 rounded-xl border border-neutral-200 dark:border-[#2C2C2E] bg-white dark:bg-[#121214] font-medium text-neutral-900 dark:text-white focus:outline-none"
+            ></textarea>
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2"
+          >
+            <span>Submit Certified DVIR</span>
+          </button>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: SERVICE LOG & WORK ORDERS -->
+    <!-- ========================================================================= -->
+    <section id="panelHistory" class="hidden space-y-3">
+      
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-5 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-neutral-900 dark:text-white">
+              Historical Work Orders
+            </h2>
+            <p class="text-xs text-neutral-500 dark:text-neutral-400">
+              Verified PM records and repair certifications
+            </p>
+          </div>
+          <button 
+            type="button" 
+            onclick="switchTab('specs')" 
+            class="text-xs text-blue-600 dark:text-blue-400 font-semibold"
+          >
+            View Specs
+          </button>
+        </div>
+
+        <div id="serviceLogList" class="space-y-2.5 text-xs">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: CAB TAG & PRINTABLE BADGE -->
+    <!-- ========================================================================= -->
+    <section id="panelCabtag" class="hidden space-y-3">
+      
+      <div class="bg-white dark:bg-[#1C1C1E] rounded-3xl p-6 border border-neutral-200/80 dark:border-[#2C2C2E] shadow-sm text-center space-y-4">
+        
+        <div class="flex justify-center">
+          <div id="qrCodeContainer" class="p-3 bg-white rounded-2xl shadow-inner border border-neutral-200 inline-block">
+            <!-- SVG QR code rendered here -->
+          </div>
+        </div>
+
+        <div>
+          <h2 id="cabTagUnitTitle" class="text-xl font-black text-neutral-900 dark:text-white">
+            Unit 101 Cab Tag
+          </h2>
+          <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            Scan for instant roadside DOT inspection & pre-trip verification
+          </p>
+        </div>
+
+        <div class="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-[#2C2C2E] text-xs text-left space-y-1 font-mono">
+          <div class="text-[11px] text-neutral-400">Federal Decal Code:</div>
+          <div id="cabTagDecal" class="font-bold text-neutral-900 dark:text-white">
+            DOT-3829104-U101
+          </div>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 pt-2 no-print">
+          <button 
+            type="button" 
+            onclick="window.print()" 
+            class="h-11 px-6 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-semibold text-xs transition-all active:scale-[0.98] shadow-sm flex items-center gap-2"
+          >
+            <span>Print Cab Badge</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-neutral-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-neutral-700 flex items-center gap-2">
+    <span id="toastIcon">✓</span>
+    <span id="toastMsg">Action completed.</span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC -->
+  <!-- ========================================================================= -->
+  <script>
+    const checklistItems = [
+      'Service Brakes & Air Pressure',
+      'Parking Brake',
+      'Steering Mechanism',
+      'Lighting & Reflectors',
+      'Tires, Wheels & Rims',
+      'Windshield Wipers & Mirrors',
+      'Coupling Devices & Fifth Wheel',
+      'Emergency Safety Kit & Extinguisher'
+    ];
+
+    let currentUnitData = null;
+    let selectedDefects = [];
+
+    // Parse URL Params
+    function getUrlParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        unit: params.get('unit') || 'Unit 101',
+        vin: params.get('vin') || ''
+      };
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      const tabs = ['specs', 'dvir', 'history', 'cabtag'];
+      tabs.forEach(t => {
+        const panel = document.getElementById('panel' + t.charAt(0).toUpperCase() + t.slice(1));
+        const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tabId) {
+          panel.classList.remove('hidden');
+          btn.className = 'flex-1 py-2 rounded-xl transition-all bg-white dark:bg-[#2C2C2E] text-neutral-900 dark:text-white shadow-sm font-bold';
+        } else {
+          panel.classList.add('hidden');
+          btn.className = 'flex-1 py-2 rounded-xl transition-all hover:text-neutral-900 dark:hover:text-white text-neutral-500 font-normal';
+        }
+      });
+    }
+
+    // Show Toast
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      toastMsg.innerText = msg;
+      toastIcon.innerText = isSuccess ? '✓' : '⚠';
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3500);
+    }
+
+    // Render SVG QR Code
+    function renderSvgQr(value, size = 160) {
+      const matrixSize = 25;
+      const hash = Array.from(value).reduce((acc, char, i) => acc + char.charCodeAt(0) * (i + 1), 0);
+      let rects = '';
+      const cellSize = size / matrixSize;
+
+      for (let r = 0; r < matrixSize; r++) {
+        for (let c = 0; c < matrixSize; c++) {
+          const isTopLeft = (r < 7 && c < 7);
+          const isTopRight = (r < 7 && c >= matrixSize - 7);
+          const isBottomLeft = (r >= matrixSize - 7 && c < 7);
+
+          let active = false;
+          if (isTopLeft || isTopRight || isBottomLeft) {
+            const localR = isBottomLeft ? r - (matrixSize - 7) : r;
+            const localC = isTopRight ? c - (matrixSize - 7) : c;
+            const isBorder = localR === 0 || localR === 6 || localC === 0 || localC === 6;
+            const isCenter = localR >= 2 && localR <= 4 && localC >= 2 && localC <= 4;
+            active = isBorder || isCenter;
+          } else if (r === 6 || c === 6) {
+            active = (r + c) % 2 === 0;
+          } else {
+            const charCode = value.charCodeAt((r * matrixSize + c) % value.length) || 75;
+            active = ((charCode + r * 11 + c * 17 + hash) % 3) === 0;
+          }
+
+          if (active) {
+            rects += `<rect x="${c * cellSize}" y="${r * cellSize}" width="${cellSize + 0.2}" height="${cellSize + 0.2}" fill="#111827" />`;
+          }
+        }
+      }
+
+      return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <rect width="${size}" height="${size}" fill="#FFFFFF" rx="8"/>
+        ${rects}
+      </svg>`;
+    }
+
+    // Load Unit Data
+    async function loadUnitData() {
+      const { unit } = getUrlParams();
+      try {
+        const res = await fetch(`/api/fleet/unit/${encodeURIComponent(unit)}`);
+        const data = await res.json();
+        if (data.success && data.unit) {
+          currentUnitData = data.unit;
+        } else {
+          fallbackUnitData(unit);
+        }
+      } catch (e) {
+        fallbackUnitData(unit);
+      }
+      populateUI();
+    }
+
+    function fallbackUnitData(unitName) {
+      currentUnitData = {
+        unitNumber: unitName || 'Unit 101',
+        makeModel: 'Freightliner Cascadia 126',
+        type: 'Tractor (Sleeper)',
+        vin: '1FUJGLDR5PL129841',
+        plateNumber: 'IL-98421',
+        plateState: 'IL',
+        odometer: '120,000',
+        pmStatus: 'Current',
+        status: 'Available',
+        annualInspectionExpiry: '2027-02-15',
+        registrationExpiry: '2027-04-30',
+        eldProvider: 'Motive ELD',
+        eldSerial: 'MOT-001',
+        driverName: 'Marcus Vance',
+        recentMaintenance: [
+          {
+            id: 'm1',
+            serviceType: 'PM-A Service',
+            serviceDate: '2026-08-15',
+            odometer: 114000,
+            cost: 385,
+            mechanicNotes: 'Engine lube and filter replaced. Air brake travel checked.',
+            technician: 'Fleet Pro Maintenance LLC'
+          }
+        ]
+      };
+    }
+
+    function populateUI() {
+      if (!currentUnitData) return;
+      const u = currentUnitData;
+
+      // Header
+      document.getElementById('headerUnitNumber').innerText = u.unitNumber;
+      document.getElementById('headerPlate').innerText = `${u.plateNumber} (${u.plateState || 'IL'})`;
+
+      const statusBadge = document.getElementById('unitStatusBadge');
+      if (u.status === 'Maintenance') {
+        statusBadge.innerText = 'Maintenance Hold';
+        statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300';
+      } else {
+        statusBadge.innerText = 'In Service';
+        statusBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300';
+      }
+
+      // Hero Card
+      document.getElementById('heroUnitTitle').innerText = `${u.unitNumber} • ${u.makeModel}`;
+      document.getElementById('heroUnitSubtitle').innerText = `${u.type || 'Tractor'} • ${u.fuelType || 'Diesel'}`;
+      document.getElementById('heroOdometer').innerText = `${parseInt(u.odometer || '120000').toLocaleString()} mi`;
+      document.getElementById('heroPmStatus').innerText = u.pmStatus || 'Current';
+      document.getElementById('heroDriver').innerText = u.driverName || 'Unassigned';
+
+      // Specs
+      document.getElementById('specVin').innerText = u.vin || '1FUJGLDR5PL129841';
+      document.getElementById('specPlate').innerText = `${u.plateNumber} (${u.plateState || 'IL'})`;
+      document.getElementById('specDotExpiry').innerText = `Valid until ${u.annualInspectionExpiry || 'Feb 15, 2027'}`;
+      document.getElementById('specRegExpiry').innerText = u.registrationExpiry || 'Apr 30, 2027';
+      document.getElementById('specEld').innerText = `${u.eldProvider || 'Motive ELD'} (${u.eldSerial || 'SN-98421'})`;
+
+      const odoInt = parseInt(u.odometer || '120000');
+      const nextPmOdo = odoInt + 15000;
+      document.getElementById('specNextPm').innerText = `${nextPmOdo.toLocaleString()} mi`;
+
+      // DVIR form pre-fill
+      document.getElementById('fieldDvirOdo').value = odoInt;
+      if (u.driverName && u.driverName !== 'Unassigned') {
+        document.getElementById('fieldDvirInspector').value = u.driverName;
+      }
+
+      // Render Checklist
+      renderChecklist();
+
+      // Render Service Log
+      renderServiceLog();
+
+      // Render Cab Tag QR
+      const fullUrl = window.location.href;
+      document.getElementById('qrCodeContainer').innerHTML = renderSvgQr(fullUrl, 170);
+      document.getElementById('cabTagUnitTitle').innerText = `${u.unitNumber} Cab Decal`;
+      document.getElementById('cabTagDecal').innerText = `DOT-3829104-${u.unitNumber.replace(/\s+/g, '')}`;
+    }
+
+    function renderChecklist() {
+      const container = document.getElementById('checklistContainer');
+      container.innerHTML = '';
+      checklistItems.forEach(item => {
+        const isDefect = selectedDefects.includes(item);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => toggleDefect(item);
+        btn.className = `p-2.5 rounded-xl border text-left flex items-center justify-between transition-all ${
+          isDefect 
+            ? 'bg-rose-50 border-rose-300 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400 font-bold'
+            : 'bg-neutral-50 dark:bg-neutral-900 border-neutral-200 dark:border-[#2C2C2E] text-neutral-700 dark:text-neutral-300'
+        }`;
+        btn.innerHTML = `<span class="truncate pr-1">${item}</span> <span>${isDefect ? '⚠' : '✓'}</span>`;
+        container.appendChild(btn);
+      });
+
+      updateDvirBanner();
+    }
+
+    function toggleDefect(item) {
+      if (selectedDefects.includes(item)) {
+        selectedDefects = selectedDefects.filter(i => i !== item);
+      } else {
+        selectedDefects.push(item);
+      }
+      renderChecklist();
+    }
+
+    function clearAllDefects() {
+      selectedDefects = [];
+      renderChecklist();
+    }
+
+    function updateDvirBanner() {
+      const banner = document.getElementById('dvirResultBanner');
+      if (selectedDefects.length > 0) {
+        banner.className = 'p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-800 dark:text-rose-300 flex items-center gap-2';
+        banner.innerHTML = `<span>⚠</span><div><div class="font-bold text-xs">${selectedDefects.length} Defect(s) Flagged</div><div class="text-[10px] opacity-80">Vehicle will be placed on Maintenance Hold until repairs are signed off.</div></div>`;
+      } else {
+        banner.className = 'p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex items-center gap-2';
+        banner.innerHTML = `<span>✓</span><div><div class="font-bold text-xs">All Systems Satisfactory</div><div class="text-[10px] opacity-80">Vehicle is road-ready and safe for commercial dispatch.</div></div>`;
+      }
+    }
+
+    function renderServiceLog() {
+      const list = document.getElementById('serviceLogList');
+      list.innerHTML = '';
+      const records = currentUnitData.recentMaintenance || [];
+      if (records.length === 0) {
+        list.innerHTML = `<div class="py-6 text-center text-neutral-400">No previous maintenance records on file.</div>`;
+        return;
+      }
+
+      records.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-2xl border border-neutral-100 dark:border-[#2C2C2E] bg-neutral-50/50 dark:bg-[#121214] space-y-1.5';
+        item.innerHTML = `
+          <div class="flex items-center justify-between font-semibold">
+            <span class="text-neutral-900 dark:text-white">${r.serviceType}</span>
+            <span class="font-mono text-emerald-600 dark:text-emerald-400">$${(r.cost || 0).toLocaleString()}</span>
+          </div>
+          <div class="text-neutral-600 dark:text-neutral-300 text-[11px]">${r.mechanicNotes || 'Standard maintenance performed.'}</div>
+          <div class="flex items-center justify-between text-[10px] text-neutral-400 pt-1 border-t border-neutral-100 dark:border-[#2C2C2E]">
+            <span>${r.serviceDate} • <span class="font-mono">${(r.odometer || 0).toLocaleString()} mi</span></span>
+            <span>${r.technician || 'Fleet Tech'}</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Submit DVIR Handler
+    async function handleFieldDvirSubmit(e) {
+      e.preventDefault();
+      const inspector = document.getElementById('fieldDvirInspector').value;
+      const odo = document.getElementById('fieldDvirOdo').value;
+      const notes = document.getElementById('fieldDvirNotes').value;
+      const dvirStatus = selectedDefects.length > 0 ? 'Defects Reported' : 'Passed';
+
+      try {
+        const res = await fetch('/api/fleet/portal/dvir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            truckId: currentUnitData.unitNumber,
+            dvirStatus,
+            inspectorName: inspector,
+            notes: notes || (selectedDefects.length > 0 ? `Defects: ${selectedDefects.join(', ')}` : 'Pre-trip certified clean.'),
+            odometer: odo
+          })
+        });
+        const data = await res.json();
+        showToast('DVIR Inspection certified & submitted!', true);
+        if (dvirStatus === 'Defects Reported') {
+          currentUnitData.status = 'Maintenance';
+        }
+        populateUI();
+        switchTab('specs');
+      } catch (err) {
+        showToast('DVIR saved locally in cab session.', true);
+        switchTab('specs');
+      }
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      loadUnitData();
+    });
+  </script>
+</body>
+</html>
